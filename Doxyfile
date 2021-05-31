@@ -1,0 +1,13 @@
+@INCLUDE=/style/doxygen/Doxyfile
+
+PROJECT_NAME           = "Signalsmith Audio's DSP Library"
+PROJECT_NUMBER         =
+PROJECT_BRIEF          = Useful C++ classes/templates for audio effects
+
+OUTPUT_DIRECTORY       = .
+# EXAMPLE_PATH = doc/examples/
+
+INPUT = ../
+EXCLUDE = ./
+
+IMAGE_PATH = manual/diagrams out/analysis

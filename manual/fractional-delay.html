@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Choosing a fractional delay</title>
+		<meta charset="utf8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link href="/style/article/dist.css" rel="stylesheet">
+		<script src="/style/article/dist.js" defer class="style-main"></script>
+	</head>
+	<body>
+		<article class="main">
+			<header>
+				<h1>Choosing a fractional delay</h1>
+				<address>Geraint Luff</address>
+				
+				<p>There are various parameters or approaches to choose from when implementing a fractional-delay or interpolator, each with their own trade-offs.  How can we decide?</p>
+			</header>
+
+			<nav class="auto"></nav>
+
+			<h2>The problem</h2>
+			<p>There are probably a few things we want in a fractional-delay or interpolator:</p>
+			<ul>
+				<li>a flat response</li>
+				<li>low aliasing (if we're modulating at all)</li>
+				<li>low latency</li>
+				<li>fast performance / low CPU</li>
+			</ul>
+			<p>Ideally, we'll have some hard requirements for some of these, and then we can choose how to trade off the rest.</p>
+			
+			<h3>Aliasing</h3>
+			<p>Let's take a quick look at where aliasing comes from in a fractional delay.  As the fractional delay varies between two integer samples, our response changes:</p>
+			<figure>
+				<video src="../out/analysis/delay-random-access-cubic.mp4" poster="../out/analysis/delay-random-access-cubic.mp4.png" class="click-to-play" loop width="571" height="571"></video>
+				<figcaption>Varying responses for cubic Catmull-Rom interpolation.  "Delay error" means the difference in group-delay compared to our target fractional delay.</figcaption>
+			</figure>
+			<p>While cubic interpolation isn't great, it illustrates the problem neatly: as the fractional delay time changes, parts of the spectrum end up being modulated, in both amplitude and phase.</p>
+			<aside class="before">A fun thing to note is that the response at Nyquist will <em>always</em> go through 0 (<equation>-\infty</equation> dB) at some point during a continuously-varying fractional delay.  Nyquist frequencies only have two phases (&pm;) and we have to move between them somehow.</aside>
+			<p>This modulation spreads out these input frequencies across the output, resulting in aliasing.  The speed of the modulation will affect <em>where</em> the aliasing ends up in the result, but we can determine the <em>level</em> just by looking at the modulation.</p>
+			<aside class="before">There are other ways to think about aliasing, but this is a nice intuitive one.</aside>
+
+			<h3>Frequency limits</h3>
+			<p>Generally, our flat-response and low-aliasing requirements will only be relevant <em>up to a certain frequency</em>.</p>
+			<p>For example, if we're working with 2x oversampled audio, we might be able to assume there isn't much energy in the top octave of the signal:</p>
+			<figure><object data="diagrams/upsampling-headroom.svg"><img src="diagrams/upsampling-headroom.svg"></object></figure>
+			<p>Unfortunately, fractional delays <em>always</em> have worse performance at the very top end.  So, even if we're not oversampled, we need to decide how much we're going to fuss about the top 5% of our bandwidth.</p>
+
+			<h2>Polynomial interpolation</h2>
+			<p>
+			
+			<h3>Catmull-Rom Cubic</h3>
+			<p>This is pretty straightforward, and better than linear, but not great - you have to be dealing with 8x-oversampled signals before the aliasing gets below -60dB:</p>
+			<figure>
+				<img src="../out/analysis/delay-random-access-cubic.svg">
+				<figcaption>Aliasing/responses for Catmull-Rom cubic interpolation.</figcaption>
+			</figure>
+		</article>
+	</body>
+</html>
