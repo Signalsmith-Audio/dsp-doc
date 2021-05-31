@@ -50,46 +50,35 @@ struct LagrangeMulAddBasic {
 };
 
 namespace _franck_impl {
-	// For ranges 2+, store the product of all factors in the mid-point of totalFactors
 	template<typename Sample, int n, int low, int high>
 	struct ProductRange {
 		using Array = std::array<Sample, (n + 1)>;
 		static constexpr int mid = (low + high)/2;
-		
 		using Left = ProductRange<Sample, n, low, mid>;
 		using Right = ProductRange<Sample, n, mid + 1, high>;
-		
-		static Sample calculateTotal(Sample x, Array &totalFactors, Array &partialFactors) {
-			constexpr int mid = (low + high)/2;
-			Sample left = Left::calculateTotal(x, totalFactors, partialFactors);
-			Sample right = Right::calculateTotal(x, totalFactors, partialFactors);
-			return totalFactors[mid] = left*right;
-		}
-		static Sample getTotal(Array &totalFactors, Array &) {
-			return totalFactors[mid];
-		}
-		static void calculatePartial(Sample extraFactor, Array &totalFactors, Array &partialFactors) {
-			Sample totalLeft = Left::getTotal(totalFactors, partialFactors);
-			Sample totalRight = Right::getTotal(totalFactors, partialFactors);
 
-			Left::calculatePartial(extraFactor*totalRight, totalFactors, partialFactors);
-			Right::calculatePartial(extraFactor*totalLeft, totalFactors, partialFactors);
+		Left left;
+		Right right;
+		
+		const Sample total;
+		ProductRange(Sample x) : left(x), right(x), total(left.total*right.total) {}
+		
+		template<class Data>
+		Sample calculateResult(Sample extraFactor, const Data &data, const Array &invFactors) {
+			return left.calculateResult(extraFactor*right.total, data, invFactors)
+				+ right.calculateResult(extraFactor*left.total, data, invFactors);
 		}
 	};
-	// For length-1 ranges, store the diff in partialFactors
 	template<typename Sample, int n, int index>
 	struct ProductRange<Sample, n, index, index> {
 		using Array = std::array<Sample, (n + 1)>;
+
+		const Sample total;
+		ProductRange(Sample x) : total(x - index) {}
 		
-		static Sample calculateTotal(Sample x, Array &, Array &partialFactors) {
-			Sample diff = x - index;
-			return partialFactors[index] = diff;
-		}
-		static Sample getTotal(Array &, Array &partialFactors) {
-			return partialFactors[index];
-		}
-		static void calculatePartial(Sample extraFactor, Array &, Array &partialFactors) {
-			partialFactors[index] = extraFactor;
+		template<class Data>
+		Sample calculateResult(Sample extraFactor, const Data &data, const Array &invFactors) {
+			return extraFactor*data[index]*invFactors[index];
 		}
 	};
 }
@@ -116,21 +105,13 @@ struct LagrangeMulAddFranck {
 		constexpr int mid = n/2;
 		using Left = _franck_impl::ProductRange<Sample, n, 0, mid>;
 		using Right = _franck_impl::ProductRange<Sample, n, mid + 1, n>;
-
-		Sample x = fractional + latency;
 		
-		Array totalFactors, partialFactors;
-		Sample leftTotal = Left::calculateTotal(x, totalFactors, partialFactors);
-		Sample rightTotal = Right::calculateTotal(x, totalFactors, partialFactors);
+		Sample x = fractional + latency;
 
-		Left::calculatePartial(rightTotal, totalFactors, partialFactors);
-		Right::calculatePartial(leftTotal, totalFactors, partialFactors);
+		Left left(x);
+		Right right(x);
 
-		Sample result = data[0]*(invDivisors[0]*partialFactors[0]);
-		for (int i = 1; i <= n; ++i) {
-			result += data[i]*(invDivisors[i]*partialFactors[i]);
-		}
-		return result;
+		return left.calculateResult(right.total, data, invDivisors) + right.calculateResult(left.total, data, invDivisors);
 	}
 };
 
