@@ -32,10 +32,18 @@ double windowHann(double x) {
 }
 
 TEST("Windowed FFT: Hann", windowed_hann) {
-	int fftSize = 256;
+	int fftSize = 336; /// 2^4 * 3 * 7 - not a "fast size", but not too slow either
 	
 	signalsmith::spectral::WindowedFFT<float> fft;
 	fft.setSize(fftSize, windowHann, 0);
+	
+	const std::vector<float> &window = fft.window();
+	TEST_ASSERT((int)window.size() == fftSize);
+	TEST_ASSERT((int)window.size() == fft.size());
+	for (int i = 0; i < fftSize; ++i) {
+		float expected = windowHann(i/(float)fftSize);
+		TEST_ASSERT(window[i] == expected);
+	}
 	
 	int harmonic = 5;
 	std::vector<float> time(fftSize);

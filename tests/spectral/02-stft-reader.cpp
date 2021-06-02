@@ -50,6 +50,98 @@ TEST("STFT writer sample-by-sample", stft_writer_sample_by_sample) {
 	}
 }
 
+TEST("STFT window sanity-check", stft_window_checks) {
+	signalsmith::spectral::STFT<double> stft;
+	
+	CsvWriter windowCsv("stft-windows");
+	CsvWriter partialCsv("stft-windows-partial");
+
+	int windowSize = 250;
+	int intervals[] = {191, 130, 96, 55, 32};
+	constexpr int intervalCount = sizeof(intervals)/sizeof(intervals[0]);
+
+	windowCsv.write("index");
+	partialCsv.write("index");
+	for (int i = 0; i < 5; ++i) {
+		windowCsv.write(intervals[i]);
+		partialCsv.write(intervals[i]);
+	}
+	windowCsv.line();
+	partialCsv.line();
+	
+	std::vector<std::vector<double>> windows, partialWindows;
+	for (int i = 0; i < intervalCount; ++i) {
+		int interval = intervals[i];
+		stft.resize(1, windowSize, interval);
+		
+		windows.push_back(stft.window());
+		partialWindows.push_back(stft.partialSumWindow());
+	}
+	for (int i = 0; i < windowSize; ++i) {
+		windowCsv.write(i);
+		partialCsv.write(i);
+		for (int j = 0; j < intervalCount; ++j) {
+			windowCsv.write(windows[j][i]);
+			partialCsv.write(partialWindows[j][i]);
+			
+			constexpr double fudge = 1e-4;
+
+//			if (i > 0 && i < windowSize/2) {
+//				TEST_ASSERT(windows[j][i] >= windows[j][i - 1] - fudge); // Monotonically increasing in first half
+//			}
+//			if (i < windowSize - 1 && i > windowSize/2) {
+//				TEST_ASSERT(windows[j][i] >= windows[j][i + 1] - fudge); // Monotonically in first half
+//			}
+			if (i > 0) {
+				TEST_ASSERT(partialWindows[j][i] <= partialWindows[j][i - 1] + fudge); // Monotonically decreasing the whole way
+			}
+		}
+		windowCsv.line();
+		partialCsv.line();
+	}
+}
+
+TEST("STFT analyse() and analyseRaw()", stft_analyse) {
+	signalsmith::spectral::STFT<double> stft(2, 256, 128);
+	
+	signalsmith::ModifiedRealFFT<double> fft(256);
+	
+	std::vector<std::vector<double>> input(2);
+	for (int c = 0; c < 2; ++c) {
+		auto &channel = input[c];
+		channel.resize(256);
+		for (int i = 0; i < 256; ++i) {
+			channel[i] = test.random(-1, 1);
+		}
+	}
+
+	// Un-windowed analysis
+	stft.analyseRaw(input);
+
+	std::vector<std::complex<double>> spectrum(256);
+	for (int c = 0; c < 2; ++c) {
+		fft.fft(input[c], spectrum);
+		for (int f = 0; f < 128; f++) {
+			TEST_ASSERT(stft.spectrum[c][f] == spectrum[f])
+		}
+	}
+
+	// Windowed analysis
+	stft.analyse(input);
+
+	// Apply the window to the input
+	auto &window = stft.window();
+	for (int c = 0; c < 2; ++c) {
+		for (int i = 0; i < 256; i++) {
+			input[c][i] *= window[i];
+		}
+		fft.fft(input[c], spectrum);
+		for (int f = 0; f < 128; f++) {
+			TEST_ASSERT(stft.spectrum[c][f] == spectrum[f])
+		}
+	}
+}
+
 TEST("STFT aliasing check", stft_aliasing) {
 	constexpr int channels = 1;
 	

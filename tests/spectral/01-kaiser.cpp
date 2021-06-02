@@ -47,7 +47,7 @@ TEST("Kaiser window", stft_kaiser_windows) {
 		//std::cout << "\taliasing peak for x" << overlap << ": " << peakDb << " dB\n";
 	}
 
-	CsvWriter csv("stft-kaiser-windows");
+	CsvWriter csv("stft-kaiser-windows-neat");
 	csv.write("x");
 	for (int overlap : overlaps) csv.write(overlap);
 	csv.line();

@@ -3,6 +3,28 @@ from numpy.fft import rfft
 
 import article
 
+###### STFT windows and partial sums
+
+columns, windowData = article.readCsv("out/analysis/stft-windows.csv")
+columns, partialSumData = article.readCsv("out/analysis/stft-windows-partial.csv")
+
+figure, (windowAxes, partialAxes) = article.medium(2)
+figure.set_size_inches(6.5, 6.5)
+windowLength = len(windowData[0])
+x = windowData[0]/float(windowLength)
+for i in range(1, len(columns)):
+	interval = float(columns[i])
+	ratio = windowLength/interval
+	label = "%.1fx (%i/%i)"%(ratio, interval, windowLength)
+	windowAxes.plot(x, windowData[i], label=label)
+	partialAxes.plot(x, partialSumData[i], label=label)
+windowAxes.set(ylabel="synthesis/analysis window")
+partialAxes.set(ylabel="effective partial-future window")
+
+figure.save("out/analysis/stft-windows.svg")
+
+###### Kaiser windows with neat ratios, and spectral analysis
+
 def getSpectrum(x, oversample=64):
 	padded = concatenate((x, zeros(len(x)*(oversample - 1))))
 
@@ -12,9 +34,7 @@ def getSpectrum(x, oversample=64):
 	bins = arange(len(spectrum))*(1.0/oversample)
 	return bins, db
 
-# A few different Kaiser windows
-
-columns, data = article.readCsv("out/analysis/stft-kaiser-windows.csv")
+columns, data = article.readCsv("out/analysis/stft-kaiser-windows-neat.csv")
 
 figure, (timeAxes, freqAxes) = article.medium(2)
 figure.set_size_inches(6.5, 6.5)
@@ -25,7 +45,7 @@ for i in range(1, len(columns)):
 
 timeAxes.set(ylim=[-0.1, 1.1])
 freqAxes.set(ylim=[-100, 1], xlim=[0, 6], xlabel="bin", ylabel="dB")
-figure.save("out/analysis/stft-kaiser-windows.svg")
+figure.save("out/analysis/stft-kaiser-windows-neat.svg")
 
 # Simulated aliasing
 
