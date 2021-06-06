@@ -1,14 +1,89 @@
 <!DOCTYPE html>
 <html lang="en-gb">
 	<head>
-		<title>redirecting...</title>
-		<meta http-equiv="refresh" content="0;url=html/modules.html" />
+		<title>DSP Library - Signalsmith Audio</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link href="/style/blog/dist.css" rel="stylesheet" id="dist-css">
+		<script src="/style/blog/dist.js" defer class="style-main" onerror="
+		    let p='https://signalsmith-audio.co.uk/style/article/dist.',
+		    s=document.createElement('script');
+		    s.className='style-main';this.parentNode.removeChild(this);
+		    s.src=p+'js';document.body.appendChild(s);
+		    document.getElementById('dist-css').href=p+'css';"></script>
 	</head>
-	<body>
-		redirecting...
-		<script>
-			//location.replace("html/" + (/^file\:\/\//.test(location.href) ? "index.html" : ""));
-			location.replace("html/modules.html");
-		</script>
+	<body class="no-footer">
+		<header class="blog">
+			<nav>
+				<a href="/"><img src="/style/images/logo/square128.png" height="48" alt=""></a>
+				<a href="../../">Signalsmith Audio</a>
+				<span class="link"></span>
+				<a href="#">DSP Library</a>
+			</nav>
+		</header>
+		<article class="main full">
+			<header>
+				<h1>DSP Library</h1>
+				<address><a href="https://signalsmith-audio.co.uk">Signalsmith Audio</a></address>
+			</header>
+
+			<nav class="auto"></nav>
+			
+			<p>This is a set of <strong>C++11</strong> header-only classes/templates to support certain DSP tasks (mostly audio).</p>
+			<p>It's still growing, but currently includes:</p>
+			<ul>
+				<li>Delay tools (circular buffers, single/multi-channel delay-lines)</li>
+				<li>Interpolators (Lagrange, polyphase, Kaiser-sinc)</li>
+				<li>FFT and spectral processing (including multi-channel STFT)</li>
+			</ul>
+			
+			<h2>How to use</h2>
+			<p>Clone using Git:</p>
+			<figure><pre><code class="full clipboard-copy">
+				git clone https://signalsmith-audio.co.uk/code/dsp.git
+			</code></pre><figcaption>There's also a <a href="https://github.com/signalsmith-audio/dsp" target="_blank">GitHub mirror</a></figcaption></figure>
+			<p>Include the appropriate header file, and start using classes:</p>
+			<figure><pre class="language-cpp"><script type="code">
+				#include "dsp/delay.h";
+				
+				using Delay = signalsmith::delay::Delay<float>;
+				Delay delayLine(1024);
+			</script></pre></figure>
+			<h3>API docs</h3>
+			<p>Check out the <a href="html/modules.html">API documentation (Doxygen)</a> for detailed information.</p>
+			
+			<h2>Testing</h2>
+			<p>Tests (and scripts to plot graphs etc.) are in a separate repository, to keep the main repo neater:</p>
+			<figure><pre><code class="full clipboard-copy">
+				git clone https://signalsmith-audio.co.uk/code/dsp-doc.git
+			</code></pre><figcaption>There's a <a href="https://github.com/signalsmith-audio/dsp-doc" target="_blank">GitHub mirror</a> for this too</figcaption></figure>
+			<h3>Goals</h3>
+			<p>Where reasonable, the tests should measure actual output quality (not just basic correctness and smoke-tests).</p>
+			<p>For example, here's the aliasing/accuracy performance of a delay line with a 20-point windowed-sinc:</p>
+			<figure><img src="out/analysis/delay-random-access-sinc20.svg"></figure>
+			<p>The automated tests check this performance for various input bandwidths, using a table like this:</p>
+			<figure><pre><code class="language-cpp">
+				// A table of acceptable limits
+				double bandwidth[] = {90, 80, 50, 25, 12.5};
+				double aliasing[] = {-20.5, -61, -70.5, -76, -77.5};
+				double ampLow[] = {-2, -0.02, -0.01, -0.01, -0.01};
+				double ampHigh[] = {0.02, 0.02, 0.01, 0.01, 0.01};
+				double delayError[] = {0.9, 0.03, 0.01, 0.01, 0.01};
+			</code></pre><figcaption>Each column specifies performance for a particular input bandwidth - e.g. 25% would correspond to 4x oversampled input.</figcaption></figure>
+			
+			<h3>Running the tests</h3>
+			<p>To run the tests:</p>
+			<figure><pre><code>make test</code></figure>
+			<p>To run just the tests in <code>tests/delay/</code> (or similar):</p>
+			<figure><pre><code>make test-delay</code></pre></figure>
+			<p>There are a few other targets (e.g. for plotting graphs) - check the <code>Makefile</code> if you're curious.</p>
+
+			<h2>License</h2>
+			<p>The main library is <a href="https://choosealicense.com/licenses/mit/">MIT licensed</a> (see <code>LICENSE.txt</code> in the main repo).</p>
+			<p>Tests, docs and support scripts are in a separate repo, and are licensed differently (just for developing/testing the library).</p>
+			<p>We're pretty flexible though - if you need something else, <a href="https://signalsmith-audio.co.uk/contact">get in touch</a>.</p>
+			
+		</article>
 	</body>
 </html>

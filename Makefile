@@ -1,4 +1,4 @@
-all: test analysis-plots doxygen
+all: test analysis-plots
 
 clean:
 	# Tests and analysis
@@ -53,7 +53,7 @@ analysis-animations:
 
 # These rely on specific things in my dev setup, but you probably don't need to run them yourself
 
-release: clean all publish publish-git
+release: clean all doxygen publish publish-git
 
 doxygen:
 	doxygen
