@@ -26,7 +26,9 @@ TEST("STFT writer sample-by-sample", stft_writer_sample_by_sample) {
 
 	signalsmith::spectral::STFT<float> stft(channels, windowSize, interval, inputLength + windowSize);
 
-	TEST_ASSERT(stft.bands() == 256 /* window size rounds up, then gets halved */);
+	 /* window size rounds up, then gets halved */
+	TEST_ASSERT(stft.fftSize() == 512);
+	TEST_ASSERT(stft.bands() == 256);
 
 	int spectrumCount = 0;
 	for (int i = 0; i < inputLength; ++i) {

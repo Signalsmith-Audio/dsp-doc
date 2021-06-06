@@ -34,7 +34,7 @@ def fractionalPlots(prefix):
 	columns, data = limitedCsv(prefix + ".fractional-amplitude.csv")
 	for i in range(1, len(columns)):
 		ampAxes.plot(data[0], data[i], label=columns[i])
-	ampAxes.set(ylim=[-21, 1], ylabel="dB", xlim=[0, 0.5])
+	ampAxes.set(ylim=[-21, 1], ylabel="response (dB)", xlim=[0, 0.5])
 
 	columns, data = limitedCsv(prefix + ".fractional-group.csv")
 	minDelay = data[1:,:-1].min()
@@ -42,7 +42,7 @@ def fractionalPlots(prefix):
 	for i in range(1, len(columns)):
 		# Nyquist entry is always spurious
 		delayAxes.plot(data[0][:-1], data[i][:-1])
-	delayAxes.set(ylim=[math.floor(minDelay + 1e-6), math.ceil(maxDelay - 1e-6)], xlim=[0, 0.5], ylabel="samples", xlabel="normalised frequency")
+	delayAxes.set(ylim=[math.floor(minDelay + 1e-6), math.ceil(maxDelay - 1e-6)], xlim=[0, 0.5], ylabel="samples", xlabel="input frequency (normalised)")
 
 	figure.save(prefix + ".fractional.svg")
 
@@ -70,7 +70,7 @@ def statsPlots(prefix):
 	fillDelay = delayAxes.fill_between(data[0][:-1], data[5][:-1], data[6][:-1], label="delay error (range)", alpha=shade_alpha, color=article.colors[0])
 	delayAxes.plot(numpy.concatenate((data[0][:-1], [None], data[0][:-1])), numpy.concatenate((data[5][:-1], [None], data[6][:-1])), label="delay error (range)")
 
-	delayAxes.set(ylim=[math.floor(minDelay - 0.1), math.ceil(maxDelay + 0.1)], xlim=[0, 0.5], ylabel="samples", xlabel="normalised frequency")
+	delayAxes.set(ylim=[math.floor(minDelay - 0.1), math.ceil(maxDelay + 0.1)], xlim=[0, 0.5], ylabel="samples", xlabel="input frequency (normalised)")
 
 	figure.save(prefix + ".svg", legend_loc='best')
 	figure.save(prefix + "@2x.png", legend_loc='best', dpi=180)
@@ -106,7 +106,7 @@ def animatePlots(prefix, doubleBack=True):
 		ampAxes.set(ylim=[-26, 1], ylabel="dB", xlim=[0, 0.5])
 
 		delayAxes.plot(delayErrors[0][:-1], delayErrors[index][:-1])
-		delayAxes.set(ylim=[math.floor(minDelay - 0.1), math.ceil(maxDelay + 0.1)], xlim=[0, 0.5], ylabel="samples", xlabel="normalised frequency")
+		delayAxes.set(ylim=[math.floor(minDelay - 0.1), math.ceil(maxDelay + 0.1)], xlim=[0, 0.5], ylabel="samples", xlabel="input frequency (normalised)")
 
 		figure.save(file, dpi=180)
 	

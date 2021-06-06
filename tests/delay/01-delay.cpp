@@ -173,10 +173,10 @@ TEST("Delay: Sinc4 interpolation (min-phase)", delay_interp_sinc4min) {
 
 	// A table of acceptable limits
 	double bandwidth[] = {90, 80, 50, 25, 12.5};
-	double aliasing[] = {-9, -13, -33, -33, -33};
+	double aliasing[] = {-9, -13.5, -33, -33.5, -33.5};
 	double ampLow[] = {-10.5, -5.5, -0.8, -0.8, -0.8};
 	double ampHigh[] = {0.4, 0.4, 0.4, 0.2, 0.03};
-	double delayError[] = {2, 1.5, 1.2, 1.2, 1.2};
+	double delayError[] = {2, 1.2, 0.3, 0.2, 0.2};
 	
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
@@ -190,7 +190,7 @@ TEST("Delay: Sinc8 interpolation (min-phase)", delay_interp_sinc8min) {
 	double aliasing[] = {-12, -21, -45, -48, -49};
 	double ampLow[] = {-6.5, -2, -0.12, -0.09, -0.09};
 	double ampHigh[] = {0.1, 0.1, 0.08, 0.08, 0.04};
-	double delayError[] = {2.5, 0.9, 0.8, 0.8, 0.8};
+	double delayError[] = {3.5, 2, 0.6, 0.4, 0.35};
 	
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
@@ -204,7 +204,7 @@ TEST("Delay: Sinc20 interpolation (min-phase)", delay_interp_sinc20min) {
 	double aliasing[] = {-20.5, -61.5, -71, -76, -77.5};
 	double ampLow[] = {-2, -0.06, -0.01, -0.01, -0.01};
 	double ampHigh[] = {0.01, 0.01, 0.01, 0.01, 0.01};
-	double delayError[] = {4.5, 2, 0.35, 0.11, 0.11};
+	double delayError[] = {5.5, 3, 1.5, 1, 1};
 	
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
