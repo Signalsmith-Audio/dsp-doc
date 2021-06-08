@@ -53,7 +53,11 @@ analysis-animations:
 
 # These rely on specific things in my dev setup, but you probably don't need to run them yourself
 
-release: clean all doxygen publish publish-git
+release: check-git clean all doxygen publish publish-git
+
+check-git:
+	git diff-index --quiet HEAD || (git status && exit 1)
+	cd .. && git diff-index --quiet HEAD || (git status && exit 1)
 
 doxygen:
 	doxygen
