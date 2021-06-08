@@ -59,6 +59,8 @@ doxygen:
 	doxygen
 
 publish:
+	find out -iname \*\@2x.png -exec rm {} \;
+	find out -iname \*.csv -exec rm {} \;
 	publish-signalsmith-audio /code/dsp
 
 publish-git:
