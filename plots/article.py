@@ -150,35 +150,37 @@ def enhanceFigure(figure):
 		return save(prefix, figure, legend_loc=legend_loc, dpi=dpi, styleOffset=styleOffset)
 	figure.save = boundSave
 	return figure
+	
+rowStretch = 0.25
 
-def small(*args, **kwargs):
-	figure, axes = pyplot.subplots(*args, **kwargs)
-	figure.set_size_inches(4.5, 3)
+def small(nrows=1, ncols=1, *args, **kwargs):
+	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
+	figure.set_size_inches(4.5, 3*(1 + (nrows - 1)*rowStretch))
 	return enhanceFigure(figure), axes
 
-def medium(*args, **kwargs):
-	figure, axes = pyplot.subplots(*args, **kwargs)
-	figure.set_size_inches(6.5, 4)
+def medium(nrows=1, ncols=1, *args, **kwargs):
+	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
+	figure.set_size_inches(6.5, 4*(1 + (nrows - 1)*rowStretch))
 	return enhanceFigure(figure), axes
 
-def tall(*args, **kwargs):
-	figure, axes = pyplot.subplots(*args, **kwargs)
-	figure.set_size_inches(4.5, 5.5)
+def tall(nrows=1, ncols=1, *args, **kwargs):
+	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
+	figure.set_size_inches(4.5, 5.5*(1 + (nrows - 1)*rowStretch))
 	return enhanceFigure(figure), axes
 
-def short(*args, **kwargs):
-	figure, axes = pyplot.subplots(*args, **kwargs)
-	figure.set_size_inches(7, 3)
+def short(nrows=1, ncols=1, *args, **kwargs):
+	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
+	figure.set_size_inches(7, 3*(1 + (nrows - 1)*rowStretch))
 	return enhanceFigure(figure), axes
 
-def wide(*args, **kwargs):
-	figure, axes = pyplot.subplots(*args, **kwargs)
-	figure.set_size_inches(11, 4)
+def wide(nrows=1, ncols=1, *args, **kwargs):
+	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
+	figure.set_size_inches(11, 4*(1 + (nrows - 1)*rowStretch))
 	return enhanceFigure(figure), axes
 
-def full(*args, **kwargs):
-	figure, axes = pyplot.subplots(*args, **kwargs)
-	figure.set_size_inches(16, 10)
+def full(nrows=1, ncols=1, *args, **kwargs):
+	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
+	figure.set_size_inches(16, 10) # Doesn't stretch, because it's page-sized
 	return enhanceFigure(figure), axes
 	
 import random
@@ -236,6 +238,28 @@ def animate(outFile, func, fps, duration=0, frameCount=0, previewRatio=0):
 		print("""<video src="%s" poster="%s" class="click-to-play" loop width="%i" height="%i"></video>"""%(outFile, previewPng, frameWidth/2, frameHeight/2))
 	finally:
 		shutil.rmtree(outdir)
+
+def unwrapPhase(freq, phase):
+	newFreq = [freq[0]]
+	newPhase = [phase[0]]
+	for i in range(1, len(freq)):
+		if phase[i] < phase[i - 1] - numpy.pi:
+			newFreq.append(freq[i])
+			newPhase.append(phase[i] + 2*numpy.pi)
+			newFreq.append(None)
+			newPhase.append(None)
+			newFreq.append(freq[i - 1])
+			newPhase.append(phase[i - 1] - 2*numpy.pi)
+		if phase[i] >= phase[i - 1] + numpy.pi:
+			newFreq.append(freq[i])
+			newPhase.append(phase[i] - 2*numpy.pi)
+			newFreq.append(None)
+			newPhase.append(None)
+			newFreq.append(freq[i - 1])
+			newPhase.append(phase[i - 1] + 2*numpy.pi)
+		newFreq.append(freq[i])
+		newPhase.append(phase[i])
+	return newFreq, newPhase
 	
 def progress(message):
 	sys.stdout.write("\033[K") # Clear the line

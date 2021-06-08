@@ -42,9 +42,9 @@ out/test-%: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
 		-o out/test-$*
 
 analysis-plots:
-	python plots/fractional-delay.py out/analysis
 	python plots/stft-kaiser.py
 	python plots/perf-lagrange.py
+	python plots/fractional-delay.py out/analysis
 
 analysis-animations:
 	python plots/fractional-delay.py out/analysis animate

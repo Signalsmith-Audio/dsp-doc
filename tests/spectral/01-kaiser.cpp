@@ -7,15 +7,12 @@
 #include "spectral.h"
 #include "fft.h"
 
-TEST("Kaiser window", stft_kaiser_windows) {
+void testKaiser(Test &test, const std::vector<int> &overlaps, const std::vector<double> &aliasingLimits, bool perfectReconstruction, bool heuristicOptimal) {
 	int length = 256*3;
 	
 	int oversample = 64;
 	signalsmith::RealFFT<double> realFft(length*oversample);
 	
-	std::vector<int> overlaps = {2, 4, 6, 8};
-	// Worst-case STFT aliasing when using these windows
-	std::vector<double> aliasingLimits = {-14, -41, -65.5, -91};
 	std::vector<std::vector<double>> windows(overlaps.size());
 
 	std::vector<double> timeBuffer;
@@ -23,7 +20,12 @@ TEST("Kaiser window", stft_kaiser_windows) {
 	for (size_t i = 0; i < overlaps.size(); ++i) {
 		int overlap = overlaps[i];
 		windows[i].resize(length);
-		signalsmith::windows::fillKaiserStft(windows[i], length, length/overlap);
+
+		auto kaiser = signalsmith::windows::Kaiser::withBandwidth(overlap, heuristicOptimal);
+		kaiser.fill(windows[i], length);
+		if (perfectReconstruction) {
+			signalsmith::windows::forcePerfectReconstruction(windows[i], length, length/overlap);
+		}
 		
 		timeBuffer = windows[i];
 		timeBuffer.resize(length*oversample);
@@ -44,10 +46,13 @@ TEST("Kaiser window", stft_kaiser_windows) {
 			}
 			peakDb = std::max(peakDb, db);
 		}
-		//std::cout << "\taliasing peak for x" << overlap << ": " << peakDb << " dB\n";
+		std::cout << "\taliasing peak for x" << overlap << ": " << peakDb << " dB\n";
 	}
 
-	CsvWriter csv("stft-kaiser-windows-neat");
+	std::string name = "kaiser-windows";
+	if (heuristicOptimal) name += "-heuristic";
+	if (perfectReconstruction) name += "-pr";
+	CsvWriter csv(name);
 	csv.write("x");
 	for (int overlap : overlaps) csv.write(overlap);
 	csv.line();
@@ -58,6 +63,24 @@ TEST("Kaiser window", stft_kaiser_windows) {
 		}
 		csv.line();
 	}
-	
-	test.pass();
+}
+
+TEST("Kaiser window", stft_kaiser_windows_plain) {
+	std::vector<int> overlaps = {2, 4, 6, 8};
+	std::vector<double> aliasingLimits = {-13, -39, -65, -91};
+
+	testKaiser(test, overlaps, aliasingLimits, false, false);
+}
+
+TEST("Kaiser window (heuristic optimal)", stft_kaiser_windows) {
+	std::vector<int> overlaps = {2, 4, 6, 8};
+	std::vector<double> aliasingLimits = {-14, -41, -65.5, -91};
+
+	testKaiser(test, overlaps, aliasingLimits, false, true);
+}
+TEST("Kaiser window (heuristic optimal P-R scaled)", stft_kaiser_windows_pr) {
+	std::vector<int> overlaps = {2, 4, 6, 8};
+	std::vector<double> aliasingLimits = {-14, -41, -65.5, -91};
+
+	testKaiser(test, overlaps, aliasingLimits, true, true);
 }

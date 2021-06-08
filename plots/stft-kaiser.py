@@ -9,7 +9,6 @@ columns, windowData = article.readCsv("out/analysis/stft-windows.csv")
 columns, partialSumData = article.readCsv("out/analysis/stft-windows-partial.csv")
 
 figure, (windowAxes, partialAxes) = article.medium(2)
-figure.set_size_inches(6.5, 6.5)
 windowLength = len(windowData[0])
 x = windowData[0]/float(windowLength)
 for i in range(1, len(columns)):
@@ -34,18 +33,16 @@ def getSpectrum(x, oversample=64):
 	bins = arange(len(spectrum))*(1.0/oversample)
 	return bins, db
 
-columns, data = article.readCsv("out/analysis/stft-kaiser-windows-neat.csv")
-
-figure, (timeAxes, freqAxes) = article.medium(2)
-figure.set_size_inches(6.5, 6.5)
-for i in range(1, len(columns)):
-	timeAxes.plot(data[0], data[i], label="%sx overlap"%columns[i])
-	bins, db = getSpectrum(data[i])
-	freqAxes.plot(bins, db)
-
-timeAxes.set(ylim=[-0.1, 1.1])
-freqAxes.set(ylim=[-100, 1], xlim=[0, 6], xlabel="bin", ylabel="dB")
-figure.save("out/analysis/stft-kaiser-windows-neat.svg")
+for name in ["kaiser-windows", "kaiser-windows-heuristic", "kaiser-windows-heuristic-pr"]:
+	columns, data = article.readCsv("out/analysis/%s.csv"%name)
+	figure, (timeAxes, freqAxes) = article.medium(2)
+	for i in range(1, len(columns)):
+		timeAxes.plot(data[0], data[i], label="%sx bandwidth"%columns[i])
+		bins, db = getSpectrum(data[i])
+		freqAxes.plot(bins, db)
+	timeAxes.set(ylim=[-0.1, 1.1])
+	freqAxes.set(ylim=[-100, 1], xlim=[0, 6], xlabel="bin", ylabel="dB")
+	figure.save("out/analysis/%s.svg"%name)
 
 # Simulated aliasing
 
