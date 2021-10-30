@@ -6,89 +6,7 @@
 #include "fft.h"
 #include "../common.h"
 
-#include <vector>
-#include <complex>
-
-using Spectrum = std::vector<std::complex<double>>;
-
-double ampToDb(double amp) {
-	return 20*std::log10(std::max(amp, 1e-100));
-}
-
-template<class Filter>
-Spectrum getSpectrum(Filter &filter, int impulseSize=8192) {
-	filter.reset();
-	Spectrum impulse(impulseSize), spectrum(impulseSize);
-
-	for (int i = 0; i < impulseSize; ++i) {
-		int v = (i == 0) ? 1 : 0;
-		impulse[i] = filter(v);
-	}
-	
-	signalsmith::FFT<double> fft(impulseSize);
-	fft.fft(impulse, spectrum);
-	return spectrum;
-}
-
-double interpSpectrum(Spectrum spectrum, double freq) {
-	double index = freq*spectrum.size();
-	int intFreqLow = index;
-	double ratio = index - intFreqLow;
-	int intFreqHigh = intFreqLow + 1;
-	if (intFreqHigh >= (int)spectrum.size()) {
-		--intFreqLow;
-		--intFreqHigh;
-	}
-	double energyLow = std::norm(spectrum[intFreqLow]);
-	double energyHigh = std::norm(spectrum[intFreqHigh]);
-	return std::sqrt(energyLow + (energyHigh - energyLow)*ratio);
-}
-
-template<class Filter>
-int impulseLength(Filter &filter, double limit=1e-10) {
-	filter.reset();
-	filter(1);
-
-	// Count how long the impulse response takes to go below the limit
-	int sample = 0;
-	int belowLimitCounter = 0;
-	while (sample < 100 || belowLimitCounter < sample*0.1 /*overshoot by 10% to be sure*/) {
-		auto mag = std::abs(filter(0));
-		if (mag < limit) {
-			++belowLimitCounter;
-		} else {
-			belowLimitCounter = 0;
-		}
-		++sample;
-	}
-	
-	return sample;
-}
-
-void writeSpectrum(Spectrum spectrum, std::string name) {
-	CsvWriter csv(name);
-	csv.line("freq", "dB", "phase", "group delay");
-
-	double prevPhase = 0, prevMag = 0;
-	for (size_t i = 0; i <= spectrum.size()/2; ++i) {
-		auto bin = spectrum[i];
-		double mag = std::abs(bin);
-		double db = 20*std::log10(mag);
-		double phase = std::arg(bin);
-		double phaseDiff = (prevPhase - phase);
-		if (mag < 1e-10 || prevMag < 1e-10) {
-			phaseDiff = 0;
-		} else if (phaseDiff > M_PI) {
-			phaseDiff -= 2*M_PI;
-		} else if (phaseDiff <= -M_PI) {
-			phaseDiff += 2*M_PI;
-		}
-		double groupDelay = phaseDiff*spectrum.size()/(2*M_PI);
-		prevMag = mag;
-		prevPhase = phase;
-		csv.line(i*1.0/spectrum.size(), db, phase, groupDelay);
-	}
-}
+#include "../filter-tests.h"
 
 template<typename Sample>
 void testReset(Test &&test) {
@@ -128,7 +46,8 @@ bool isMonotonic(const Spectrum &spectrum, int direction=-1) {
 	double maxMag = std::abs(spectrum[start]);
 	for (int i = start; i != end; i += direction) {
 		double mag = std::abs(spectrum[i]);
-		if (mag < maxMag) {
+		if (maxMag > 1e-6 && mag < maxMag) { // only care if it's above -120dB
+			//std::cout << "not monotonic @" << i << " (" << i*1.0/spectrum.size() << ")\n";
 			return false;
 		}
 		maxMag = std::max(mag, maxMag);
@@ -141,7 +60,8 @@ template<typename Sample>
 void testButterworth(Test &&test, double freq) {
 	signalsmith::filters::BiquadStatic<Sample> filter;
 	
-	double zeroIsh = 1e-6; // -120dB
+	double zeroIsh = 1e-5; // -100dB
+	std::complex<double> one = 1;
 	
 	{
 		filter.lowpass(freq);
@@ -154,10 +74,11 @@ void testButterworth(Test &&test, double freq) {
 		double difference = std::abs(criticalDb - expectedDb);
 		if (difference > 0.001) {
 			writeSpectrum(spectrum, "fail-butterworth-spectrum");
+			test.log(criticalDb, " != ", expectedDb);
 			return test.fail("Butterworth critical frequency (lowpass)");
 		}
 		if (std::abs(spectrum[nyquistIndex]) > zeroIsh) return test.fail("0 at Nyquist: ", spectrum[nyquistIndex]);
-		if (std::abs(std::abs(spectrum[0]) - 1) > zeroIsh) return test.fail("1 at 0: ", spectrum[0]);
+		if (std::abs(spectrum[0] - one) > zeroIsh) return test.fail("1 at 0: ", spectrum[0]);
 
 		if (!isMonotonic(spectrum, -1)) {
 			writeSpectrum(spectrum, "fail-butterworth-spectrum");
@@ -176,7 +97,7 @@ void testButterworth(Test &&test, double freq) {
 		double difference = std::abs(criticalDb - expectedDb);
 		if (difference > 0.001) return test.fail("Butterworth critical frequency (highpass)");
 		if (std::abs(spectrum[0]) > zeroIsh) return test.fail("0 at 0: ", spectrum[0]);
-		if (std::abs(std::abs(spectrum[nyquistIndex]) - 1) > zeroIsh) return test.fail("1 at Nyquist: ", spectrum[nyquistIndex]);
+		if (std::abs(spectrum[nyquistIndex] - one) > zeroIsh) return test.fail("1 at Nyquist: ", spectrum[nyquistIndex]);
 
 		if (!isMonotonic(spectrum, 1)) {
 			writeSpectrum(spectrum, "fail-butterworth-spectrum");
@@ -184,7 +105,7 @@ void testButterworth(Test &&test, double freq) {
 		}
 	}
 
-	// Non-Butterworth
+	// Wider bandwidth is just softer, still monotonic
 	{
 		filter.lowpass(freq, 1.91);
 		auto spectrum = getSpectrum(filter);
@@ -201,6 +122,7 @@ void testButterworth(Test &&test, double freq) {
 			return test.fail("highpass octave=1.91 should still be monotonic");
 		}
 	}
+	// Narrower bandwidth has a slight bump
 	{
 		filter.lowpass(freq, 1.89);
 		auto spectrum = getSpectrum(filter);
@@ -220,6 +142,8 @@ void testButterworth(Test &&test, double freq) {
 }
 
 TEST("Butterworth filters", filters_butterworth) {
-	testButterworth<double>(test.prefix("double@0.01"), 0.1);
-	testButterworth<float>(test.prefix("float@0.01"), 0.1);
+	testButterworth<double>(test.prefix("double@0.05"), 0.05);
+	if (test.success) testButterworth<float>(test.prefix("float@0.05"), 0.05);
+	if (test.success) testButterworth<double>(test.prefix("double@0.2"), 0.2);
+	if (test.success) testButterworth<float>(test.prefix("float@0.2"), 0.2);
 }

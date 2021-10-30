@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <iomanip>
 #include <sstream>
 #include <chrono>
 #include <vector>
@@ -71,7 +72,7 @@ public:
 	template<class First, class ...Args>
 	void fail(std::string r, First first, Args ...args) {
 		std::stringstream stream;
-		stream << first;
+		stream << std::setprecision(15) << first;
 		fail(r + stream.str(), args...);
 	}
 	void pass() {}
