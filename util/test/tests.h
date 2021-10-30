@@ -35,6 +35,15 @@ class Test {
 	TestFn runFn;
 
 	bool running = false;
+
+	template<class First, class ...Args>
+	void logInner(First &&first, Args ...args) {
+		std::cout << first;
+		logInner(args...);
+	}
+	void logInner() {
+		std::cout << std::endl;
+	}
 public:
 	Test(TestList& testList, std::string codeLocation, std::string testName, TestFn fn) : testList(testList), codeLocation(codeLocation), testName(testName), runFn(fn) {
 		testList.add(*this);
@@ -71,6 +80,12 @@ public:
 	double random(double low, double high) {
 		std::uniform_real_distribution<double> distribution(low, high);
 		return distribution(testList.randomEngine);
+	}
+	
+	template<class ...Args>
+	void log(Args ...args) {
+		std::cout << "\t";
+		logInner(args...);
 	}
 };
 

@@ -40,13 +40,13 @@ void testKaiser(Test &test, const std::vector<int> &overlaps, const std::vector<
 			double mag2 = std::norm(spectrum[i])/magRef;
 			double db = 10*std::log10(mag2 + 1e-30);
 			if (db > aliasingLimit) {
-				std::cout << overlap << "x overlap at bin " << i << "/" << oversample << "\n";
-				std::cout << db << " > " << aliasingLimit << "\n";
+				test.log(overlap, "x overlap at bin ", i, "/", oversample);
+				test.log(db, " > ", aliasingLimit);
 				return test.fail("Aliasing too high");
 			}
 			peakDb = std::max(peakDb, db);
 		}
-		std::cout << "\taliasing peak for x" << overlap << ": " << peakDb << " dB\n";
+		test.log("aliasing peak for x", overlap, ": ", peakDb, " dB");
 	}
 
 	std::string name = "kaiser-windows";
@@ -83,4 +83,50 @@ TEST("Kaiser window (heuristic optimal P-R scaled)", stft_kaiser_windows_pr) {
 	std::vector<double> aliasingLimits = {-14, -41, -65.5, -91};
 
 	testKaiser(test, overlaps, aliasingLimits, true, true);
+}
+
+TEST("Kaiser: beta & bandwidth", stft_kaiser_beta_bandwidth) {
+	using Kaiser = signalsmith::windows::Kaiser;
+	
+	int points = 389;
+	std::vector<double> dataA(points), dataB(points);
+	
+	for (double bw = 0.5; bw < 16; bw += 0.1) {
+		double beta = Kaiser::bandwidthToBeta(bw);
+		
+		// Matches direct construction
+		Kaiser(beta).fill(dataA, points);
+		Kaiser::withBandwidth(bw).fill(dataB, points);
+		for (int i = 0; i < points; ++i) {
+			TEST_ASSERT(dataA[i] == dataB[i]);
+		}
+		
+		double bw2 = Kaiser::betaToBandwidth(beta);
+		if (std::abs(bw2 - bw) > 1e-6) {
+			return test.fail("bandwidths don't match");
+		}
+	}
+}
+
+TEST("Kaiser: beta & sidelobes", stft_kaiser_beta_sidelobes) {
+	using Kaiser = signalsmith::windows::Kaiser;
+	
+	int points = 389;
+	std::vector<double> dataA(points), dataB(points);
+	
+	for (double bw = 0.5; bw < 16; bw += 0.1) {
+		double beta = Kaiser::bandwidthToBeta(bw);
+		
+		// Matches direct construction
+		Kaiser(beta).fill(dataA, points);
+		Kaiser::withBandwidth(bw).fill(dataB, points);
+		for (int i = 0; i < points; ++i) {
+			TEST_ASSERT(dataA[i] == dataB[i]);
+		}
+		
+		double bw2 = Kaiser::betaToBandwidth(beta);
+		if (std::abs(bw2 - bw) > 1e-6) {
+			return test.fail("bandwidths don't match");
+		}
+	}
 }
