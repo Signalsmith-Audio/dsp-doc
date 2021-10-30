@@ -49,13 +49,28 @@ analysis-plots:
 analysis-animations:
 	python plots/fractional-delay.py out/analysis animate
 
+check-main-commit:
+	@CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
+		KNOWN_COMMIT=$$(cat dsp-commit.txt) ; \
+		COMMON_ANCESTOR=$$(cd .. && git merge-base "$$KNOWN_COMMIT" "$$CURRENT_COMMIT") ; \
+		if [ "$$KNOWN_COMMIT" != "$$CURRENT_COMMIT" ]; then \
+			echo "\nUntested commits (make update-main-commit to change):"; \
+			cd .. && git log --graph --oneline "$$KNOWN_COMMIT...$$CURRENT_COMMIT"; \
+			echo; \
+			exit 1; \
+		fi;
+
+update-main-commit:
+	@CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
+		echo "$$CURRENT_COMMIT" > dsp-commit.txt
+
 ############## Docs and releases ##############
 
 # These rely on specific things in my dev setup, but you probably don't need to run them yourself
 
 release: check-git clean all doxygen publish publish-git
 
-check-git:
+check-git: check-main-commit
 	git diff-index --quiet HEAD || (git status && exit 1)
 	cd .. && git diff-index --quiet HEAD || (git status && exit 1)
 
