@@ -1,8 +1,9 @@
 #ifndef _TEST_FRAMEWORK_TESTS_H
 #define _TEST_FRAMEWORK_TESTS_H
 
-#include <iostream> // std::cout
+#include <iostream>
 #include <string>
+#include <sstream>
 #include <chrono>
 #include <vector>
 #include <functional>
@@ -28,6 +29,8 @@ public:
 // A test object with an associated function, which adds itself to the above list
 class Test {
 	using TestFn = std::function<void(Test&)>;
+	Test *parentTest = nullptr;
+	std::string parentPrefix = "";
 
 	TestList& testList;
 	std::string codeLocation;
@@ -44,6 +47,9 @@ class Test {
 	void logInner() {
 		std::cout << std::endl;
 	}
+	Test(Test *parent, std::string prefix) : parentTest(parent), parentPrefix(prefix), testList(parent->testList), codeLocation(parent->codeLocation), testName(parent->testName), runFn(nullptr), running(true) {
+		// Don't add to the list - it's just being used as a prefixed proxy
+	}
 public:
 	Test(TestList& testList, std::string codeLocation, std::string testName, TestFn fn) : testList(testList), codeLocation(codeLocation), testName(testName), runFn(fn) {
 		testList.add(*this);
@@ -56,7 +62,17 @@ public:
 		if (!success) return;
 		success = false;
 		reason = r;
-		testList.fail(reason);
+		if (parentTest) {
+			parentTest->fail(parentPrefix + ": " + r);
+		} else {
+			testList.fail(reason);
+		}
+	}
+	template<class First, class ...Args>
+	void fail(std::string r, First first, Args ...args) {
+		std::stringstream stream;
+		stream << first;
+		fail(r + stream.str(), args...);
 	}
 	void pass() {}
 	
@@ -85,7 +101,12 @@ public:
 	template<class ...Args>
 	void log(Args ...args) {
 		std::cout << "\t";
+		if (parentTest) std::cout << parentPrefix << ": ";
 		logInner(args...);
+	}
+	
+	Test prefix(std::string prefix) {
+		return Test(this, prefix);
 	}
 };
 
