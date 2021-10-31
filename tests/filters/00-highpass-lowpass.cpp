@@ -6,7 +6,7 @@
 #include "fft.h"
 #include "../common.h"
 
-#include "../filter-tests.h"
+#include "./filter-tests.h"
 
 template<typename Sample>
 void testReset(Test &&test) {
@@ -36,23 +36,6 @@ void testReset(Test &&test) {
 TEST("Filter reset", filter_reset) {
 	testReset<double>(test.prefix("double"));
 	testReset<float>(test.prefix("float"));
-}
-
-bool isMonotonic(const Spectrum &spectrum, int direction=-1) {
-	// Monotonically increasing in the specified direction
-	int start = (direction > 0) ? 0 : spectrum.size()/2;
-	int end = (direction > 0) ? spectrum.size()/2 + 1 : -1;
-
-	double maxMag = std::abs(spectrum[start]);
-	for (int i = start; i != end; i += direction) {
-		double mag = std::abs(spectrum[i]);
-		if (maxMag > 1e-6 && mag < maxMag) { // only care if it's above -120dB
-			//std::cout << "not monotonic @" << i << " (" << i*1.0/spectrum.size() << ")\n";
-			return false;
-		}
-		maxMag = std::max(mag, maxMag);
-	}
-	return true;
 }
 
 // Should be Butterworth when we don't specify a bandwidth
