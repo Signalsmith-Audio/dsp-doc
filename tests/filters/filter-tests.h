@@ -6,6 +6,9 @@ using Spectrum = std::vector<std::complex<double>>;
 static double ampToDb(double amp) {
 	return 20*std::log10(std::max(amp, 1e-100));
 }
+static double dbToAmp(double db) {
+	return std::pow(10, db*0.05);
+}
 
 template<class Filter>
 Spectrum getSpectrum(Filter &filter, double impulseLimit=1e-10) {
@@ -82,7 +85,7 @@ static void writeSpectrum(Spectrum spectrum, std::string name) {
 	}
 }
 
-static bool isMonotonic(const Spectrum &spectrum, double from=0, double to=0.5) {
+static bool isMonotonic(const Spectrum &spectrum, double from=0, double to=0.5, double thresholdDb=0.000001) {
 	int direction = (from < to) ? 1 : -1;
 	if (std::abs(from) >= 1) {
 		direction = from;
@@ -94,11 +97,13 @@ static bool isMonotonic(const Spectrum &spectrum, double from=0, double to=0.5) 
 	int maxIndex = std::floor(std::max(from, to)*spectrum.size());
 	int start = (direction > 0) ? minIndex : maxIndex;
 	int end = (direction > 0) ? maxIndex + 1 : minIndex - 1;
+	
+	double thresholdRatio = dbToAmp(-thresholdDb);
 
 	double maxMag = std::abs(spectrum[start]);
 	for (int i = start; i != end; i += direction) {
 		double mag = std::abs(spectrum[i]);
-		if (maxMag > 1e-6 && mag < maxMag) { // only care if it's above -120dB
+		if (maxMag > 1e-6 && mag < maxMag*thresholdRatio) { // only care if it's above -120dB
 			//std::cout << "not monotonic @" << i << " (" << i*1.0/spectrum.size() << ")\n";
 			return false;
 		}
