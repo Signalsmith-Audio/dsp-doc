@@ -75,15 +75,15 @@ check-git: check-main-commit
 	cd .. && git diff-index --quiet HEAD || (git status && exit 1)
 
 doxygen:
-	doxygen
+	doxygen Doxyfile-local
 
 publish:
 	find out -iname \*\@2x.png -exec rm {} \;
 	find out -iname \*.csv -exec rm {} \;
 	publish-signalsmith-audio /code/dsp
+	cd util && python article
 
 publish-git:
-	cd plots && python article
 	# Self-hosted
 	cd .. && publish-signalsmith-git /code/dsp.git
 	publish-signalsmith-git /code/dsp-doc.git ../dsp/

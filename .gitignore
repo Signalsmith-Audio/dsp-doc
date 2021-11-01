@@ -2,4 +2,6 @@
 **/*.pyc
 out/
 html/
-plots/article
+
+util/article
+Doxyfile-local
