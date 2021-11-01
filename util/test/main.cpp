@@ -4,6 +4,8 @@
 #include "tests.h"
 #include <cstdlib> // srand, rand
 #include <ctime> // time
+#include <cstdlib> // getenv
+#include <string>
 
 TestList _globalTestList;
 
@@ -59,7 +61,11 @@ int TestList::run(int repeats) {
 		for (unsigned int i = 0; i < tests.size(); i++) {
 			Test& test = tests[i];
 			currentlyRunning = {&test};
+			// Reset the random engine, so that we can reliably re-run individual tests
+			randomEngine.seed(randomSeed + repeat);
+
 			test.run(0, currentlySilent);
+
 			if (!test.success) {
 				printFailure(test.reason);
 				return 1;
@@ -69,10 +75,6 @@ int TestList::run(int repeats) {
 	}
 	currentlyRunning.resize(0);
 	return 0;
-}
-
-void TestList::setRandomSeed(long long seed) {
-	randomEngine.seed(seed);
 }
 
 #include <execinfo.h>
@@ -104,11 +106,15 @@ int main(int argc, char* argv[]) {
 	int repeats = args.flag<int>("repeats", "loop the tests a certain number of times", 1);
 	defaultBenchmarkTime = args.flag<double>("test-time", "target per-test duration for benchmarks (excluding setup)", 1);
 	defaultBenchmarkDivisions = args.flag<double>("test-divisions", "target number of sub-divisions for benchmarks", 5);
-	int randomSeed = args.flag<int>("seed", "random seed", time(NULL));
+	long long seed = time(NULL);
+	if (const char *seedInt = std::getenv("SEED")) {
+		seed = std::stoll(seedInt);
+	}
+	int randomSeed = args.flag<int>("seed", "random seed", seed);
 	args.errorExit();
 
 	srand(randomSeed);
 	_globalTestList.setRandomSeed(randomSeed);
-	std::cout << Console::Dim << "random seed: " << randomSeed << Console::Reset << "\n";
+	std::cout << Console::Dim << "SEED=" << randomSeed << Console::Reset << "\n";
 	return _globalTestList.run(repeats);
 }

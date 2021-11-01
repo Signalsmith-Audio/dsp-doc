@@ -18,6 +18,7 @@ class TestList {
 	std::vector<Test> tests;
 	std::vector<Test*> currentlyRunning;
 	bool currentlySilent = false;
+	long long randomSeed;
 public:
 	bool exitOnFail = true;
 
@@ -26,7 +27,9 @@ public:
 	void fail(std::string reason);
 
 	std::mt19937_64 randomEngine;
-	void setRandomSeed(long long seed);
+	void setRandomSeed(long long seed) {
+		randomSeed = seed;
+	}
 };
 
 // A test object with an associated function, which adds itself to the above list

@@ -1,10 +1,10 @@
-#ifdef ANALYSIS_CSV_PREFIX
+#ifndef SKIP_CSV
 #include <fstream>
 class CsvWriter {
 	std::ofstream csvFile;
 	bool newLine = true;
 public:
-	CsvWriter(std::string name) : csvFile(std::string(ANALYSIS_CSV_PREFIX) + name + ".csv") {}
+	CsvWriter(std::string name) : csvFile(name + ".csv") {}
 	
 	CsvWriter & write() {
 		return *this;

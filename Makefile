@@ -1,4 +1,4 @@
-all: test analysis-plots
+all: test
 
 clean:
 	# Tests and analysis
@@ -25,16 +25,15 @@ out/test: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
 		"util/test/main.cpp" -I "util" \
 		-I tests/ $${TEST_CPP_FILES} \
 		-I "../" -I "signalsmith-fft/" \
-		-DANALYSIS_CSV_PREFIX="\"\"" \
 		-o out/test
 
 # Make a particular sub-directory in tests/
 test-% : out/test-%
 	mkdir -p out/analysis
-	cd out/analysis && ../test-$* --seed=1
+	cd out/analysis && ../test-$*
 	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python
 
-out/test-%: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
+out/test-%: $(shell find .. -iname "*.h") $(shell find tests/$* -iname "*.cpp")
 	TEST_CPP_FILES=$$(find tests/$* -iname "*.cpp" | sort) ;\
 	echo "building tests: $${TEST_CPP_FILES}" ;\
 	mkdir -p out ;\
@@ -43,16 +42,12 @@ out/test-%: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
 		"util/test/main.cpp" -I "util" \
 		-I tests/ $${TEST_CPP_FILES} \
 		-I "../" -I "signalsmith-fft/" \
-		-DANALYSIS_CSV_PREFIX="\"\"" \
 		-o out/test-$*
 
-analysis-plots:
-	python plots/stft-kaiser.py
-	python plots/perf-lagrange.py
-	python plots/fractional-delay.py out/analysis
-
 analysis-animations:
-	python plots/fractional-delay.py out/analysis animate
+	cd out/analysis && \
+		find ../../tests -iname \*.py -print0 \
+		| xargs -0 -n1 -I '{}' python {} animate
 
 check-main-commit:
 	@CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
