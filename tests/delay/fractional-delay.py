@@ -126,12 +126,11 @@ def deleteCsv(prefix):
 
 ##########
 
-if len(sys.argv) < 2:
-	print("Need prefix or search-dir for the .fractional-???.csv files")
-	exit(1)
-prefix = sys.argv[1]
-
-tasks = sys.argv[2:]
+prefix = "."
+tasks = []
+if len(sys.argv) >= 2:
+	prefix = sys.argv[1]
+	tasks = sys.argv[2:]
 
 if os.path.isdir(prefix):
 	suffix = ".fractional-amplitude.csv"

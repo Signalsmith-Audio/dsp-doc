@@ -8,9 +8,13 @@ clean:
 
 ############## Testing ##############
 
+# Used for plots and stuff
+export PYTHONPATH=$(shell cd util && pwd)
+
 test: out/test
 	mkdir -p out/analysis
-	cd out && ./test
+	cd out/analysis && ../test
+	cd out/analysis && find ../../tests -iname \*.py -print0 | xargs -0 -n1 python
 
 out/test: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
 	TEST_CPP_FILES=$$(find tests -iname "*.cpp" | sort) ;\
@@ -21,13 +25,14 @@ out/test: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
 		"util/test/main.cpp" -I "util" \
 		-I tests/ $${TEST_CPP_FILES} \
 		-I "../" -I "signalsmith-fft/" \
-		-DANALYSIS_CSV_PREFIX="\"analysis/\"" \
+		-DANALYSIS_CSV_PREFIX="\"\"" \
 		-o out/test
 
 # Make a particular sub-directory in tests/
 test-% : out/test-%
 	mkdir -p out/analysis
-	cd out && ./test-$* --seed=1
+	cd out/analysis && ../test-$* --seed=1
+	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python
 
 out/test-%: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
 	TEST_CPP_FILES=$$(find tests/$* -iname "*.cpp" | sort) ;\
@@ -38,7 +43,7 @@ out/test-%: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
 		"util/test/main.cpp" -I "util" \
 		-I tests/ $${TEST_CPP_FILES} \
 		-I "../" -I "signalsmith-fft/" \
-		-DANALYSIS_CSV_PREFIX="\"analysis/\"" \
+		-DANALYSIS_CSV_PREFIX="\"\"" \
 		-o out/test-$*
 
 analysis-plots:

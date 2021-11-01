@@ -113,7 +113,11 @@ def set_style(figure, axes, color=True, dashesInterleaved=True, legend_loc=None,
 		else:
 			axes.grid(alpha=0)
 
-def save(prefix, figure, legend_loc=0, dpi=90, styleOffset=0):
+def save(prefix, figure, legend_loc=0, dpi=0, styleOffset=0):
+	if dpi == 0:
+		dpi == 90
+		if "@2x.png" in prefix:
+			dpi = 180
 	dirname = os.path.dirname(prefix)
 	if len(dirname) and not os.path.exists(dirname):
 		os.makedirs(dirname)
@@ -133,7 +137,6 @@ def save(prefix, figure, legend_loc=0, dpi=90, styleOffset=0):
 		figure.savefig(prefix, bbox_inches='tight')
 	else:
 		figure.savefig(prefix + '.svg', bbox_inches='tight')
-		stretchSvgClip(prefix + '.svg')
 		figure.patch.set_fill(True)
 		figure.savefig(prefix + '.png', bbox_inches='tight', dpi=90)
 		figure.savefig(prefix + '@2x.png', bbox_inches='tight', dpi=180)

@@ -38,9 +38,18 @@ void TestList::add(Test& test) {
 	tests.push_back(test);
 }
 
+static void printFailure(const std::string &reason) {
+	std::cerr << Console::Red << Console::Bright << "\nFailed: "
+		<< Console::Reset << reason << "\n\n";
+}
+
 void TestList::fail(std::string reason) {
 	for (auto testPtr : currentlyRunning) {
 		testPtr->fail(reason);
+	}
+	if (exitOnFail) {
+		printFailure(reason);
+		std::exit(1);
 	}
 }
 
@@ -52,8 +61,7 @@ int TestList::run(int repeats) {
 			currentlyRunning = {&test};
 			test.run(0, currentlySilent);
 			if (!test.success) {
-				std::cerr << Console::Red << Console::Bright << "\nFailed: "
-					<< Console::Reset << test.reason << "\n\n";
+				printFailure(test.reason);
 				return 1;
 			}
 		}

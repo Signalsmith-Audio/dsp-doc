@@ -19,6 +19,8 @@ class TestList {
 	std::vector<Test*> currentlyRunning;
 	bool currentlySilent = false;
 public:
+	bool exitOnFail = true;
+
 	void add(Test& test);
 	int run(int repeats=1);
 	void fail(std::string reason);
