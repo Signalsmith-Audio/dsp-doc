@@ -29,6 +29,7 @@ TEST("STFT writer sample-by-sample", stft_writer_sample_by_sample) {
 	 /* window size rounds up, then gets halved */
 	TEST_ASSERT(stft.fftSize() == 512);
 	TEST_ASSERT(stft.bands() == 256);
+	TEST_ASSERT(stft.interval() == 256);
 
 	int spectrumCount = 0;
 	for (int i = 0; i < inputLength; ++i) {

@@ -34,7 +34,6 @@ matplotlib.rcParams['font.size'] = 12
 signalsmith_colors = [[0.05, 0.05, 0.04], [0.204, 0.1561, 0.1154], [0.2821, 0.2041, 0.1378], [0.4603, 0.0988, 0.1112], [0.5584, 0, 0.0793], [0.5685, 0.0906, 0.2966], [0.552, 0.188, 0.5], [0.4651, 0.3153, 0.6654], [0.3564, 0.4279, 0.7997], [0.1107, 0.5283, 0.8896], [0, 0.604, 0.9378], [0.0606, 0.7257, 0.5554], [0.2585, 0.8133, 0.147], [0.6581, 0.8257, 0.0659], [1, 0.7994, 0], [1, 0.9264, 0.4412], [1, 1, 0.92]];
 signalsmith_colors_light = signalsmith_colors[:2:-1]
 signalsmith_colors_light[0] = [1, 1, 1];
-#signalsmith_colors_light[-1] = [0.5303, 0.0988, 0.1112];
 signalsmith_colors_light[-1] = [0.4772, 0.0889, 0.1];
 pyplot.register_cmap(cmap=LinearSegmentedColormap.from_list('signalsmith', signalsmith_colors))
 pyplot.register_cmap(cmap=LinearSegmentedColormap.from_list('signalsmith_light', signalsmith_colors_light))
