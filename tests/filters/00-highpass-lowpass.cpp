@@ -126,7 +126,7 @@ void testButterworth(Test &&test, double freq) {
 
 TEST("Butterworth filters", filters_butterworth) {
 	for (int i = 0; test.success && i < 10; ++i) {
-		double f = test.random(0.01, 0.49);
+		double f = test.random(0.02, 0.48);
 		std::string n = std::to_string(f);
 		testButterworth<double>(test.prefix("double@" + n), f);
 		if (test.success) testButterworth<float>(test.prefix("float@" + n), f);
