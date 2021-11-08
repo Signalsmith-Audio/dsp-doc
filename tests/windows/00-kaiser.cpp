@@ -88,20 +88,28 @@ TEST("Kaiser window (heuristic optimal P-R scaled)", stft_kaiser_windows_pr) {
 struct SidelobeStats {
 	double mainPeak = 0, sidePeak = 0;
 	double mainEnergy = 0, sideEnergy = 0;
+	double enbw = 0;
 };
 SidelobeStats measureKaiser(double bandwidth, double measureBandwidth, bool forcePR=false) {
 	SidelobeStats result;
-
+	
 	int length = 256;
 	int oversample = 64;
 	signalsmith::RealFFT<double> realFft(length*oversample);
 	std::vector<double> window(length*oversample, 0);
-	
+
 	auto kaiser = signalsmith::windows::Kaiser::withBandwidth(bandwidth);
 	kaiser.fill(window, length); // Leave the rest as zero padding (oversamples the frequency domain)
 	if (forcePR) {
 		signalsmith::windows::forcePerfectReconstruction(window, length, length/measureBandwidth);
 	}
+
+	double sum = 0, sum2 = 0;
+	for (auto s : window) {
+		sum += s;
+		sum2 += s*s;
+	}
+	result.enbw = length*sum2/(sum*sum);
 
 	std::vector<std::complex<double>> spectrum(window.size()/2);
 	realFft.fft(window, spectrum);
@@ -155,7 +163,7 @@ TEST("Kaiser: bandwidth & sidelobes", stft_kaiser_bandwidth_sidelobes) {
 	using Kaiser = signalsmith::windows::Kaiser;
 
 	CsvWriter csv("kaiser-bandwidth-sidelobes");
-	csv.line("bandwidth", "exact peak (dB)", "exact energy (dB)", "heuristic bandwidth", "heuristic peak (dB)", "heuristiic energy (dB)");
+	csv.line("bandwidth", "exact peak (dB)", "exact energy (dB)", "heuristic bandwidth", "heuristic peak (dB)", "heuristiic energy (dB)", "exact ENBW", "heuristic ENBW");
 
 	auto optimalEnergyBandwidth = [&](double b) {
 		double hb = Kaiser::betaToBandwidth(Kaiser::bandwidthToBeta(b, true));
@@ -183,7 +191,7 @@ TEST("Kaiser: bandwidth & sidelobes", stft_kaiser_bandwidth_sidelobes) {
 		return hb;
 	};
 
-	for (double b = 0.1; b < 10; b += 0.1) {
+	for (double b = 0.1; b < 22; b += 0.1) {
 		auto stats = measureKaiser(b, b);
 
 		double peakRatio = stats.sidePeak/(stats.mainPeak + 1e-100);
@@ -206,9 +214,9 @@ TEST("Kaiser: bandwidth & sidelobes", stft_kaiser_bandwidth_sidelobes) {
 		double peakDb = ampToDb(peakRatio);
 		{ // Approximate peak ratio
 			double predictedPeakDb = Kaiser::bandwidthToPeakDb(b);
-			if (b >= 2 && b <= 9 && std::abs(peakDb - predictedPeakDb) > 0.5) {
+			if (b >= 2 && b <= 10 && std::abs(peakDb - predictedPeakDb) > 0.5) {
 				test.log(b, ": ", peakDb, " ~= ", predictedPeakDb);
-				return test.fail("Peak approximation should be accurate within 0.5dB, within 2-9x range");
+				return test.fail("Peak approximation should be accurate within 0.5dB, within 2-10x range");
 			}
 			double predictedBandwidth = Kaiser::peakDbToBandwidth(predictedPeakDb);
 			if (std::abs(b - predictedBandwidth) > 1e-3) {
@@ -237,9 +245,9 @@ TEST("Kaiser: bandwidth & sidelobes", stft_kaiser_bandwidth_sidelobes) {
 		double hPeakDb = ampToDb(hPeakRatio);
 		{ // Approximate peak ratio
 			double predictedPeakDb = Kaiser::bandwidthToPeakDb(b, true);
-			if (b >= 0.5 && b <= 9 && std::abs(hPeakDb - predictedPeakDb) > 0.5) {
+			if (b >= 0.5 && b <= 10 && std::abs(hPeakDb - predictedPeakDb) > 0.5) {
 				test.log(b, ": ", hPeakDb, " ~= ", predictedPeakDb);
-				return test.fail("Heuristic peak approximation should be accurate within 0.5dB, within 0.5-9x range");
+				return test.fail("Heuristic peak approximation should be accurate within 0.5dB, within 0.5-10x range");
 			}
 			double predictedBandwidth = Kaiser::peakDbToBandwidth(predictedPeakDb, true);
 			if (b > 0.5 && std::abs(b - predictedBandwidth) > 1e-3) {
@@ -247,7 +255,16 @@ TEST("Kaiser: bandwidth & sidelobes", stft_kaiser_bandwidth_sidelobes) {
 				return test.fail("inverse of predicted bandwidth (heuristic peak)");
 			}
 		}
+		
+		if (std::abs(stats.enbw - Kaiser::bandwidthToEnbw(b)) > 0.05) {
+			test.log(b, ": ", stats.enbw, " != ", Kaiser::bandwidthToEnbw(b));
+			return test.fail("Predicted ENBW");
+		}
+		if (std::abs(hStats.enbw - Kaiser::bandwidthToEnbw(b, true)) > 0.05) {
+			test.log(b, ": ", stats.enbw, " != ", Kaiser::bandwidthToEnbw(b, true));
+			return test.fail("Predicted heuristic ENBW");
+		}
 
-		csv.line(b, ampToDb(peakRatio), energyDb, hb, ampToDb(hPeakRatio), energyToDb(hEnergyRatio));
+		csv.line(b, ampToDb(peakRatio), energyDb, hb, ampToDb(hPeakRatio), energyToDb(hEnergyRatio), stats.enbw, hStats.enbw);
 	}
 }

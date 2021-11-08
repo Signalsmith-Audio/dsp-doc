@@ -31,19 +31,23 @@ mainFigure, mainAxes = article.small()
 heuristicFigure, heuristicAxes = article.small()
 energyFigure, energyAxes = article.small()
 peakFigure, peakAxes = article.small()
-
+enbwFigure, enbwAxes = article.small()
 
 peakAxes.plot(data[0], data[1], label="exact")
 peakAxes.plot(data[0], data[4], label="heuristic")
 energyAxes.plot(data[0], data[2], label="exact")
 energyAxes.plot(data[0], data[5], label="heuristic")
+enbwAxes.plot(data[0], data[6], label="exact")
+enbwAxes.plot(data[0], data[7], label="heuristic")
 
-peakAxes.set(ylabel="side/main peaks (dB)", xlabel="bandwidth", xlim=[1,None], ylim=[-120, 0])
-energyAxes.set(ylabel="side/main energy (dB)", xlabel="bandwidth", xlim=[1,None], ylim=[-120, 0])
+peakAxes.set(ylabel="side/main peaks (dB)", xlabel="bandwidth", xlim=[1,10], ylim=[-120, 0])
+energyAxes.set(ylabel="side/main energy (dB)", xlabel="bandwidth", xlim=[1,10], ylim=[-120, 0])
+enbwAxes.set(ylabel="ENBW", xlabel="bandwidth", xlim=[1, 22], ylim=[0, None])
 peakFigure.save("kaiser-bandwidth-sidelobes-peak.svg")
 energyFigure.save("kaiser-bandwidth-sidelobes-energy.svg")
+enbwFigure.save("kaiser-bandwidth-enbw.svg")
 
-### For tuning the bandwidth -> dB approximations
+## For tuning the bandwidth -> dB approximations
 #def f(b): # exact peak
 #	return 8/(b + 2) - 12.75*b + 10 + (b < 2)*4*(b - 2)
 #def fh(b): # heuristic peak
@@ -53,11 +57,16 @@ energyFigure.save("kaiser-bandwidth-sidelobes-energy.svg")
 #def f2h(b): # heuristic-optimal energy
 #	b = b + (b < 3)*(3 - b)*0.5
 #	return -3/(b + 0.4) - 13.4*b + 12.9 + (b < 3)*-9.6*(b - 3)
+#def enbw(bandwidth):
+#	bandwidth = maximum(bandwidth, 2)
+#	#return log(bandwidth)
+#	return 1 + (bandwidth - 2)*0.2 - 0.005*(bandwidth - 2)**2 - 0.000005*(bandwidth - 2)**3 + 0.0000022*(bandwidth - 2)**4
 #approxFigure, approxAxes = article.medium();
 #approxAxes.plot(data[0], data[1] - f(data[0]), label="peak error")
 #approxAxes.plot(data[0], data[2] - f2(data[0]), label="energy error")
 #approxAxes.plot(data[0], data[4] - fh(data[0]), label="heuristic peak")
 #approxAxes.plot(data[0], data[5] - f2h(data[0]), label="heuristic energy")
+#approxAxes.plot(data[0], data[6] - enbw(data[0]), label="ENBW error")
 #approxAxes.set(ylabel="dB", xlabel="bandwidth")
 #approxFigure.save("kaiser-approx-tuning.svg")
 
