@@ -33,6 +33,9 @@ test-% : out/test-%
 	cd out/analysis && ../test-$*
 	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python
 
+python-%:
+	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python
+
 out/test-%: $(shell find .. -iname "*.h") $(shell find tests/$* -iname "*.cpp")
 	TEST_CPP_FILES=$$(find tests/$* -iname "*.cpp" | sort) ;\
 	echo "building tests: $${TEST_CPP_FILES}" ;\

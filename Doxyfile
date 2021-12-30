@@ -8,5 +8,3 @@ INPUT = ../
 EXCLUDE = ./
 
 IMAGE_PATH = manual/diagrams out/analysis
-
-#HIDE_SCOPE_NAMES = NO

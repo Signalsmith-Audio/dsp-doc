@@ -46,34 +46,42 @@ def fractionalPlots(prefix):
 
 	figure.save(prefix + ".fractional.svg")
 
-def statsPlots(prefix):
+def statsPlots(outputPrefix, names=None, prefixes=None):
 	figure, (aliasingAxes, responseAxes, delayAxes) = article.medium(3)
 	figure.set_size_inches(6.5, 6.5)
 	
 	targetDelays = numpy.linspace(0, 0.5, 6)
-	
-	columns, data = article.readCsv(prefix + ".fractional-stats.csv")
-	
-	shade_alpha = 0.06
+		
+	shade_alpha_bounded = 0.06
+	shade_alpha = 0.1
 
-	responseAxes.plot(numpy.concatenate((data[0], [None], data[0])), numpy.concatenate((data[3], [None], data[4])), label="response (range)")
-	fillResponse = responseAxes.fill_between(data[0], data[3], data[4], label="delay error (range)", alpha=shade_alpha, color=article.colors[0])
-	responseAxes.plot(data[0], data[2], label="response (mean)")
-	responseAxes.set(ylim=[-13, 1], ylabel="dB", xlim=[0, 0.5], yticks=[0, -3, -6, -9, -12])
-	
-	aliasingAxes.plot(data[0], data[1], label="aliasing")
-	aliasingAxes.set(ylim=[-95, 0], ylabel="dB", xlim=[0, 0.5])
+	if prefixes == None:
+		prefixes = [outputPrefix]
+	if names == None:
+		names = ["interpolator"]
 
-	delayRangeIndex = min(len(data[5]) - 1, int(len(data[5])*0.95));
-	minDelay = data[5,:delayRangeIndex].min()
-	maxDelay = data[6:,:delayRangeIndex].max()
-	fillDelay = delayAxes.fill_between(data[0][:-1], data[5][:-1], data[6][:-1], label="delay error (range)", alpha=shade_alpha, color=article.colors[0])
-	delayAxes.plot(numpy.concatenate((data[0][:-1], [None], data[0][:-1])), numpy.concatenate((data[5][:-1], [None], data[6][:-1])), label="delay error (range)")
+	for i in range(len(prefixes)):
+		prefix = prefixes[i]
+		name = names[i]
+		
+		columns, data = article.readCsv(prefix + ".fractional-stats.csv")
+		aliasingAxes.plot(data[0], data[1], label=name)
+		aliasingAxes.set(ylim=[-95, 0], ylabel="dB", xlim=[0, 0.5])
 
-	delayAxes.set(ylim=[math.floor(minDelay - 0.1), math.ceil(maxDelay + 0.1)], xlim=[0, 0.5], ylabel="samples", xlabel="input frequency (normalised)")
+		responseAxes.plot(numpy.concatenate((data[0],)), numpy.concatenate((data[2],)))
+		fillResponse = responseAxes.fill_between(data[0], data[3], data[4], alpha=shade_alpha, color=article.colors[i])
+		responseAxes.set(ylim=[-13, 1], ylabel="dB", xlim=[0, 0.5], yticks=[0, -3, -6, -9, -12])
+		
+		delayRangeIndex = min(len(data[5]) - 1, int(len(data[5])*0.95));
+		minDelay = data[5,:delayRangeIndex].min()
+		maxDelay = data[6:,:delayRangeIndex].max()
+		fillDelay = delayAxes.fill_between(data[0][:-1], data[5][:-1], data[6][:-1], alpha=shade_alpha_bounded, color=article.colors[i])
+		delayAxes.plot(numpy.concatenate((data[0][:-1], [None], data[0][:-1])), numpy.concatenate((data[5][:-1], [None], data[6][:-1])))
 
-	figure.save(prefix + ".svg", legend_loc='best')
-	figure.save(prefix + "@2x.png", legend_loc='best', dpi=180)
+		delayAxes.set(ylim=[math.floor(minDelay - 0.1), math.ceil(maxDelay + 0.1)], xlim=[0, 0.5], ylabel="delay error (samples)", xlabel="input frequency (normalised)")
+
+	figure.save(outputPrefix + ".svg", legend_loc='best')
+	figure.save(outputPrefix + "@2x.png", legend_loc='best', dpi=180)
 	
 def animatePlots(prefix, doubleBack=True):
 	columns, impulses = article.readCsv(prefix + ".fractional-impulse.csv")
@@ -129,13 +137,20 @@ def deleteCsv(prefix):
 prefix = "."
 tasks = sys.argv[1:]
 
+statsPlots("interpolator-LagrangeN", ["Lagrange3", "Lagrange7", "Lagrange19"], ["delay-random-access-lagrange3", "delay-random-access-lagrange7", "delay-random-access-lagrange19"])
+statsPlots("interpolator-KaiserSincN", ["4-point", "8-point", "20-point"], ["delay-random-access-sinc4", "delay-random-access-sinc8", "delay-random-access-sinc20"])
+statsPlots("interpolator-KaiserSincN-min", ["4-point", "8-point", "20-point"], ["delay-random-access-sinc4min", "delay-random-access-sinc8min", "delay-random-access-sinc20min"])
+statsPlots("delay-random-access-linear")
+statsPlots("delay-random-access-cubic")
+
 if os.path.isdir(prefix):
 	suffix = ".fractional-amplitude.csv"
 	candidates = glob.glob(prefix + "/**" + suffix)
 	prefixes = [path[:-len(suffix)] for path in candidates]
 	for prefix in prefixes:
-		fractionalPlots(prefix)
-		statsPlots(prefix)
+#		fractionalPlots(prefix)
+#		statsPlots(prefix)
+		pass
 	if "animate" in tasks:
 		for prefix in prefixes:
 			animatePlots(prefix)
