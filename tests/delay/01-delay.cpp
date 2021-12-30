@@ -118,7 +118,7 @@ TEST("Delay: Lagrange-19 interpolation", delay_interp_lagrange19) {
 
 	// A table of acceptable limits
 	double bandwidth[] = {90, 80, 50, 25, 12.5};
-	double aliasing[] = {-13, -22.5, -81, -151, -151};
+	double aliasing[] = {-13, -22.5, -81, -150, -150};
 	double ampLow[] = {-6, -2, -0.01, -0.01, -0.01};
 	double ampHigh[] = {0.01, 0.01, 0.01, 0.01, 0.01};
 	double delayError[] = {1.5, 0.35, 0.01, 0.01, 0.01};

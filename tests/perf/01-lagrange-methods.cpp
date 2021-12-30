@@ -175,13 +175,13 @@ static double measureInterpolator(Test &test, bool testAgainstReference) {
 			double actual = interpolator.fractional(buffer, d);
 			if (!test.closeEnough(actual, expected, "actual ~= expected", 1e-4)) {
 				std::cout << actual << " != " << expected << "\n";
-				return 0;
+				return -1e10;
 			}
 		}
 	}
 	
 	int trials = 100;
-	Stopwatch stopwatch;
+	Stopwatch stopwatch{false};
 	for (int t = 0; t < trials; ++t) {
 		stopwatch.startLap();
 		for (int i = 0; i < testBlock; ++i) {
@@ -235,7 +235,7 @@ struct PerformanceResults {
 	
 	void runAll(std::string csvName) {
 		add<signalsmith::delay::InterpolatorLagrangeN>("current");
-	//	add<LagrangeMulAddBasic>("mul/add basic");
+//		add<LagrangeMulAddBasic>("mul/add basic");
 		add<LagrangeMulAddFranck>("Franck");
 		add<LagrangeBarycentric>("barycentric");
 		add<KaiserSincN>("kaiser-sinc", false);

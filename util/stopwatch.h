@@ -22,17 +22,19 @@ class Stopwatch {
 #endif
 
 	Time lapStart, lapBest, lapTotal, lapTotal2;
-	double lapOverhead;
+	double lapOverhead = 0;
 	int lapCount = 0;
 public:
-	Stopwatch() {
-		start();
-		const int repeats = 1000;
-		for (int i = 0; i < repeats; ++i) {
-			startLap();
-			lap();
+	Stopwatch(bool compensate=true) {
+		if (compensate) {
+			start();
+			const int repeats = 1000;
+			for (int i = 0; i < repeats; ++i) {
+				startLap();
+				lap();
+			}
+			lapOverhead = (double)lapTotal/lapCount;
 		}
-		lapOverhead = (double)lapTotal/lapCount;
 		start();
 	}
 	
@@ -68,8 +70,8 @@ public:
 	double best() const {
 		return std::max(0.0, lapBest - lapOverhead);
 	}
-	double optimistic() const {
-		return std::max(best(), mean() - std());
+	double optimistic(double deviations=1) const {
+		return std::max(best(), mean() - std()*deviations);
 	}
 };
 
