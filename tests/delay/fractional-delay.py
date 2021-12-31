@@ -66,11 +66,11 @@ def statsPlots(outputPrefix, names=None, prefixes=None):
 		
 		columns, data = article.readCsv(prefix + ".fractional-stats.csv")
 		aliasingAxes.plot(data[0], data[1], label=name)
-		aliasingAxes.set(ylim=[-95, 0], ylabel="dB", xlim=[0, 0.5])
+		aliasingAxes.set(ylim=[-95, 0], ylabel="aliasing (dB)", xlim=[0, 0.5])
 
 		responseAxes.plot(numpy.concatenate((data[0],)), numpy.concatenate((data[2],)))
 		fillResponse = responseAxes.fill_between(data[0], data[3], data[4], alpha=shade_alpha, color=article.colors[i])
-		responseAxes.set(ylim=[-13, 1], ylabel="dB", xlim=[0, 0.5], yticks=[0, -3, -6, -9, -12])
+		responseAxes.set(ylim=[-13, 1], ylabel="mean/range (dB)", xlim=[0, 0.5], yticks=[0, -3, -6, -9, -12])
 		
 		delayRangeIndex = min(len(data[5]) - 1, int(len(data[5])*0.95));
 		minDelay = data[5,:delayRangeIndex].min()
