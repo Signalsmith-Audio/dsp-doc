@@ -41,7 +41,7 @@ struct ImpulseAnalyser {
 	using Complex = std::complex<Sample>;
 	
 	int impulseLength;
-	signalsmith::RealFFT<Sample> realFft;
+	signalsmith::fft::RealFFT<Sample> realFft;
 	
 	ImpulseAnalyser(int impulseLength=512) : impulseLength(impulseLength), realFft(impulseLength) {}
 

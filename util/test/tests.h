@@ -11,6 +11,8 @@
 #include <cmath>
 #include <random>
 
+#define LOG_EXPR(expr) std::cout << #expr << " = " << (expr) << std::endl;
+
 class Test;
 
 // A test-runner, defined statically
@@ -101,6 +103,10 @@ public:
 	
 	double random(double low, double high) {
 		std::uniform_real_distribution<double> distribution(low, high);
+		return distribution(testList.randomEngine);
+	}
+	int randomInt(int low, int high) {
+		std::uniform_int_distribution<int> distribution(low, high);
 		return distribution(testList.randomEngine);
 	}
 	

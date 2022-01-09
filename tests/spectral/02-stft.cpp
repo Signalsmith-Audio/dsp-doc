@@ -89,12 +89,6 @@ TEST("STFT window sanity-check", stft_window_checks) {
 			
 			constexpr double fudge = 1e-4;
 
-//			if (i > 0 && i < windowSize/2) {
-//				TEST_ASSERT(windows[j][i] >= windows[j][i - 1] - fudge); // Monotonically increasing in first half
-//			}
-//			if (i < windowSize - 1 && i > windowSize/2) {
-//				TEST_ASSERT(windows[j][i] >= windows[j][i + 1] - fudge); // Monotonically in first half
-//			}
 			if (i > 0) {
 				TEST_ASSERT(partialWindows[j][i] <= partialWindows[j][i - 1] + fudge); // Monotonically decreasing the whole way
 			}
@@ -107,7 +101,7 @@ TEST("STFT window sanity-check", stft_window_checks) {
 TEST("STFT analyse() and analyseRaw()", stft_analyse) {
 	signalsmith::spectral::STFT<double> stft(2, 256, 128);
 	
-	signalsmith::ModifiedRealFFT<double> fft(256);
+	signalsmith::fft::ModifiedRealFFT<double> fft(256);
 	
 	std::vector<std::vector<double>> input(2);
 	for (int c = 0; c < 2; ++c) {

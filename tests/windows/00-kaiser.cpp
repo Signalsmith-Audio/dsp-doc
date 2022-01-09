@@ -11,7 +11,7 @@ void testKaiser(Test &test, const std::vector<int> &overlaps, const std::vector<
 	int length = 256*3;
 	
 	int oversample = 64;
-	signalsmith::RealFFT<double> realFft(length*oversample);
+	signalsmith::fft::RealFFT<double> realFft(length*oversample);
 	
 	std::vector<std::vector<double>> windows(overlaps.size());
 
@@ -95,7 +95,7 @@ SidelobeStats measureKaiser(double bandwidth, double measureBandwidth, bool forc
 	
 	int length = 256;
 	int oversample = 64;
-	signalsmith::RealFFT<double> realFft(length*oversample);
+	signalsmith::fft::RealFFT<double> realFft(length*oversample);
 	std::vector<double> window(length*oversample, 0);
 
 	auto kaiser = signalsmith::windows::Kaiser::withBandwidth(bandwidth);

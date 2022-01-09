@@ -17,10 +17,11 @@ test: out/test
 	cd out/analysis && find ../../tests -iname \*.py -print0 | xargs -0 -n1 python
 
 out/test: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
-	TEST_CPP_FILES=$$(find tests -iname "*.cpp" | sort) ;\
-	echo "building tests: $${TEST_CPP_FILES}" ;\
+	@TEST_CPP_FILES=$$(find tests -iname "*.cpp" | sort) ;\
+	echo "Building tests:" ;\
+	echo "$${TEST_CPP_FILES}" | sed 's/^/     /' ;\
 	mkdir -p out ;\
-	g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
+	time g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
  		-Wpedantic -pedantic-errors \
 		"util/test/main.cpp" -I "util" \
 		-I tests/ $${TEST_CPP_FILES} \
@@ -38,7 +39,8 @@ python-%:
 
 out/test-%: $(shell find .. -iname "*.h") $(shell find tests/$* -iname "*.cpp")
 	TEST_CPP_FILES=$$(find tests/$* -iname "*.cpp" | sort) ;\
-	echo "building tests: $${TEST_CPP_FILES}" ;\
+	echo "Building tests:" ;\
+	echo "$${TEST_CPP_FILES}" | sed 's/^/     /' ;\
 	mkdir -p out ;\
 	g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
  		-Wpedantic -pedantic-errors \

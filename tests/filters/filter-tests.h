@@ -37,7 +37,7 @@ Spectrum getSpectrum(Filter &filter, double impulseLimit=1e-10) {
 		++sample;
 	}
 	
-	signalsmith::FFT<double> fft(pow2);
+	signalsmith::fft::FFT<double> fft(pow2);
 	spectrum.resize(pow2);
 	fft.fft(impulse, spectrum);
 	return spectrum;
