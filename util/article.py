@@ -14,8 +14,6 @@ import numpy
 def escape(text):
 	return str(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
-import re # For SVG munging
-
 rgb = [
 	[0, 0, 0.9],
 	[0.8, 0, 0],

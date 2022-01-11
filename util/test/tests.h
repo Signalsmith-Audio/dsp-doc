@@ -101,8 +101,9 @@ public:
 		return result;
 	}
 	
-	double random(double low, double high) {
-		std::uniform_real_distribution<double> distribution(low, high);
+	template<typename V=double>
+	V random(V low, V high) {
+		std::uniform_real_distribution<V> distribution(low, high);
 		return distribution(testList.randomEngine);
 	}
 	int randomInt(int low, int high) {
