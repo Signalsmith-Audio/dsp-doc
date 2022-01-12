@@ -88,8 +88,8 @@ void testComplexLinearity(Test &test, int size, Sample errorLimit) {
 	std::vector<complex> inputSum(size), outputSum(size);
 	
 	for (int i = 0; i < size; ++i) {
-		inputA[i] = complex{test.random<Sample>(-10, 10), test.random<Sample>(-10, 10)};
-		inputB[i] = complex{test.random<Sample>(-10, 10), test.random<Sample>(-10, 10)};
+		inputA[i] = complex{Sample(test.random(-10, 10)), Sample(test.random(-10, 10))};
+		inputB[i] = complex{Sample(test.random(-10, 10)), Sample(test.random(-10, 10))};
 		inputSum[i] = inputA[i] + inputB[i];
 	}
 
@@ -153,7 +153,7 @@ void testRealFft(Test &test, int size, Sample errorLimit=1e-5) {
 	std::vector<Sample> inputReal(size);
 	
 	for (int i = 0; i < size; ++i) {
-		inputComplex[i] = inputReal[i] = test.random<Sample>(-10, 10);
+		inputComplex[i] = inputReal[i] = Sample(test.random(-10, 10));
 	}
 	for (int f = size/2; f < size; ++f) {
 		outputReal[f] = f; // Known values, to prove we haven't messed them up

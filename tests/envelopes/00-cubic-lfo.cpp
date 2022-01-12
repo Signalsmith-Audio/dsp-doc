@@ -18,7 +18,7 @@ TEST("Cubic LFO", cubic_lfo) {
 	lfoE.set(0, 2, 0.02, 1, 1);
 	
 	CsvWriter csv("cubic-lfo-example");
-	csv.line('i', "no random", "freq", "depth (40%)", "depth (100%)", "both");
+	csv.line('i', "no random", "freq", "depth (50%)", "depth (100%)", "both");
 	
 	for (int i = 0; i < 500; ++i) {
 		csv.line(i, lfoA.next(), lfoB.next(), lfoC.next(), lfoD.next(), lfoE.next());
