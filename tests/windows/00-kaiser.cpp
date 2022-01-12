@@ -23,6 +23,10 @@ void testKaiser(Test &test, const std::vector<int> &overlaps, const std::vector<
 
 		auto kaiser = signalsmith::windows::Kaiser::withBandwidth(overlap, heuristicOptimal);
 		kaiser.fill(windows[i], length);
+		for (int s = 0; s < length; ++s) {
+			double r = (s + 0.5)/length;
+			TEST_ASSERT(std::abs(windows[i][s] - kaiser(r)) < 1e-10);
+		}
 		if (perfectReconstruction) {
 			signalsmith::windows::forcePerfectReconstruction(windows[i], length, length/overlap);
 		}
