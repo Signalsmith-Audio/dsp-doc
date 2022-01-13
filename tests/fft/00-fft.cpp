@@ -209,7 +209,7 @@ TEST("Real FFT", realFft) {
 	for (auto size : sizes()) {
 		if (size%2) continue; // even sizes only
 
-		testRealFft<double, false>(test, size, 1e-14);
+		testRealFft<double, false>(test, size, 1e-12);
 		if (!test.success) return;
 		testRealFft<float, false>(test, size, 1e-5);
 		if (!test.success) return;
@@ -220,7 +220,7 @@ TEST("Modified Real FFT", modifiedRealFft) {
 	for (auto size : sizes()) {
 		if (size%2) continue; // even sizes only
 
-		testRealFft<double, true>(test, size, 1e-13);
+		testRealFft<double, true>(test, size, 1e-12);
 		if (!test.success) return;
 		testRealFft<float, true>(test, size, 1e-5);
 		if (!test.success) return;
