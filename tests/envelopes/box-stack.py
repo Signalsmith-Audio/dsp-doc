@@ -26,11 +26,16 @@ axes.set(xlim=[0, 10], ylim=[-120, 5], ylabel="dB", xlabel="frequency (relative 
 figure.save("box-stack-short-freq.svg", legend_loc="upper right")
 
 ##
-#
-#columns, data = article.readCsv("box-stack-stats.csv")
-#
-#figure, axes = article.medium();
-#for i in range(1, len(columns)):
-#	axes.bar(data[0], data[i], label=columns[i], color=article.colors[i - 1]);
-#figure.save("box-stack-stats.svg", legend_loc="lower left")
+
+columns, data = article.readCsv("box-stack-stats.csv")
+
+figure, axes = article.small();
+axes.scatter(data[0], data[1], label="heuristic", color=article.colors[0]);
+axes.set(xlim=[0, 10.2], ylim=[0, 18]);
+figure.save("box-stack-bandwidth.svg")
+
+figure, axes = article.small();
+axes.scatter(data[0], data[2], label="heuristic", color=article.colors[1]);
+axes.set(xlim=[0, 10.2], ylim=[-200, 5]);
+figure.save("box-stack-peak.svg")
 
