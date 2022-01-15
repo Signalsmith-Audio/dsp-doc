@@ -6,7 +6,7 @@
 
 #include "envelopes.h"
 
-TEST("Peak hold (fixed)", peak_hold) {
+TEST("Peak hold", peak_hold) {
 	int length = 1000;
 	std::vector<float> signal(length);
 	for (auto &v : signal) {
