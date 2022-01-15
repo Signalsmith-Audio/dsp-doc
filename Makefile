@@ -31,7 +31,7 @@ out/test: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
 # Make a particular sub-directory in tests/
 test-% : out/test-%
 	mkdir -p out/analysis
-	cd out/analysis && ../test-$* --seed=1642095748
+	cd out/analysis && ../test-$*
 	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python
 
 python-%:
