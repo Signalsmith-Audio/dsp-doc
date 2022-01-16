@@ -2,18 +2,25 @@ import article
 import numpy
 from numpy import fft
 
-figure, (timeAxes, freqAxes) = article.wide(1, 2);
+stepFig, stepAxes = article.small()
+figure = article.wideFigure(1, 5, False);
+timeAxes = figure.gridPlot((0, 0), (1, 2))
+#stepAxes = figure.gridPlot((1, 0))
+freqAxes = figure.gridPlot((0, 2), (1, 3));
 
 columns, data = article.readCsv("box-stack-long-time.csv")
 for i in range(1, len(columns)):
-	timeAxes.plot(data[0]*1.0/len(data[0]), data[i]*len(data[0]), label="layers = %s"%columns[i]);
-timeAxes.set(xlabel="time", ylabel="impulse response (scaled)")
+	timeAxes.plot(data[0]*1.0/len(data[0]), data[i]*len(data[0]), label="%s layers"%columns[i]);
+	stepAxes.plot(data[0]*1.0/len(data[0]), numpy.cumsum(data[i]));
+timeAxes.set(xlabel="time", ylabel="impulse response (scaled)", xticks=[0, 1], yticks=[0, 1, 2, 3])
+stepAxes.set(xlabel="time", ylabel="step response (scaled)")
 
 columns, data = article.readCsv("box-stack-long-freq.csv")
 for i in range(1, len(columns)):
 	freqAxes.plot(data[0], data[i]);
 freqAxes.set(xlim=[0, 10], ylim=[-120, 5], ylabel="dB", xlabel="frequency (relative to filter length)")
 figure.save("box-stack-long.svg", legend_loc="upper right")
+stepFig.save("box-stack-long-step.svg")
 
 ##
 
