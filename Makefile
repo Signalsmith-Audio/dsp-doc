@@ -7,6 +7,16 @@ clean:
 	rm -rf html
 
 ############## Testing ##############
+#
+# make test
+#	builds all tests (.cpp files) in tests/, excluding directories starting with "_"
+#
+# make test-foo
+#	builds all tests in tests/foo/, excluding directories starting with "_"
+
+# make benchmark-foo
+#	builds all tests in benchmarks/foo/, excluding directories starting with "_"
+#
 
 # Used for plots and stuff
 export PYTHONPATH=$(shell cd util && pwd)
@@ -17,7 +27,7 @@ test: out/test
 	cd out/analysis && find ../../tests -iname \*.py -print0 | xargs -0 -n1 python
 
 out/test: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
-	@TEST_CPP_FILES=$$(find tests -iname "*.cpp" | sort) ;\
+	@TEST_CPP_FILES=$$(find tests -iname "*.cpp" -not -path "*/_*/*" | sort) ;\
 	echo "Building tests:" ;\
 	echo "$${TEST_CPP_FILES}" | sed 's/^/     /' ;\
 	mkdir -p out ;\
@@ -25,10 +35,11 @@ out/test: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
  		-Wpedantic -pedantic-errors \
 		"util/test/main.cpp" -I "util" \
 		-I tests/ $${TEST_CPP_FILES} \
-		-I "../" -I "signalsmith-fft/" \
+		-I "../" \
 		-o out/test
 
-# Make a particular sub-directory in tests/
+## Individual tests
+
 test-% : out/test-%
 	mkdir -p out/analysis
 	cd out/analysis && ../test-$*
@@ -38,8 +49,30 @@ python-%:
 	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python
 
 out/test-%: $(shell find .. -iname "*.h") $(shell find tests/$* -iname "*.cpp")
-	TEST_CPP_FILES=$$(find tests/$* -iname "*.cpp" | sort) ;\
-	echo "Building tests:" ;\
+	TEST_CPP_FILES=$$(find tests/$* -iname "*.cpp" -not -path "*/_*/*" | sort) ;\
+	echo "Building benchmarks:" ;\
+	echo "$${TEST_CPP_FILES}" | sed 's/^/     /' ;\
+	mkdir -p out ;\
+	g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
+ 		-Wpedantic -pedantic-errors \
+		"util/test/main.cpp" -I "util" \
+		-I tests/ $${TEST_CPP_FILES} \
+		-I "../" \
+		-o out/test-$*
+
+## Benchmarks
+
+benchmark-% : out/benchmark-%
+	mkdir -p out/benchmarks
+	cd out/benchmarks && ../benchmark-$*
+	cd out/benchmarks && find ../../benchmarks/$* -iname \*.py -print0 | xargs -0 -n1 python
+
+benchmarkpy-%:
+	cd out/benchmarks && find ../../benchmarks/$* -iname \*.py -print0 | xargs -0 -n1 python
+
+out/benchmark-%: $(shell find .. -iname "*.h") $(shell find benchmarks/$* -iname "*.cpp")
+	TEST_CPP_FILES=$$(find benchmarks/$* -iname "*.cpp" -not -path "*/_*/*" | sort) ;\
+	echo "Building benchmarks:" ;\
 	echo "$${TEST_CPP_FILES}" | sed 's/^/     /' ;\
 	mkdir -p out ;\
 	g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
@@ -47,7 +80,9 @@ out/test-%: $(shell find .. -iname "*.h") $(shell find tests/$* -iname "*.cpp")
 		"util/test/main.cpp" -I "util" \
 		-I tests/ $${TEST_CPP_FILES} \
 		-I "../" -I "signalsmith-fft/" \
-		-o out/test-$*
+		-o out/benchmark-$*
+
+##
 
 analysis-animations:
 	cd out/analysis && \

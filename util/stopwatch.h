@@ -57,8 +57,11 @@ public:
 
 		startLap();
 	}
+	double total() const {
+		return std::max(0.0, lapTotal - lapCount*lapOverhead);
+	}
 	double mean() const {
-		return (double)lapTotal/lapCount - lapOverhead;
+		return total()/lapCount;
 	}
 	double var() const {
 		double m = (double)lapTotal/lapCount, m2 = (double)lapTotal2/lapCount;

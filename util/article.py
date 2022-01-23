@@ -10,9 +10,14 @@ from matplotlib import pyplot
 from matplotlib.colors import LinearSegmentedColormap
 import numpy
 
-# from html import escape # doesn't exist in Python 2
+# from html import escape  <-- doesn't exist in Python 2
 def escape(text):
 	return str(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+font_prop = None
+matplotlib.rcParams['font.family'] = ['Arial', 'DejaVu Sans', 'Bitstream Vera Sans'];
+matplotlib.rcParams['mathtext.fontset'] = 'stixsans'
+matplotlib.rcParams['font.size'] = 12
 
 rgb = [
 	[0, 0, 0.9],
@@ -22,20 +27,6 @@ rgb = [
 	[0.9, 0.6, 0],
 	[0.8, 0, 0.8],
 ]
-
-font_prop = None
-matplotlib.rcParams['font.family'] = ['Arial', 'DejaVu Sans', 'Bitstream Vera Sans'];
-matplotlib.rcParams['mathtext.fontset'] = 'stixsans'
-matplotlib.rcParams['font.size'] = 12
-
- # Custom colour maps: "signalsmith" and "signalsmith_light"
-signalsmith_colors = [[0.05, 0.05, 0.04], [0.204, 0.1561, 0.1154], [0.2821, 0.2041, 0.1378], [0.4603, 0.0988, 0.1112], [0.5584, 0, 0.0793], [0.5685, 0.0906, 0.2966], [0.552, 0.188, 0.5], [0.4651, 0.3153, 0.6654], [0.3564, 0.4279, 0.7997], [0.1107, 0.5283, 0.8896], [0, 0.604, 0.9378], [0.0606, 0.7257, 0.5554], [0.2585, 0.8133, 0.147], [0.6581, 0.8257, 0.0659], [1, 0.7994, 0], [1, 0.9264, 0.4412], [1, 1, 0.92]];
-signalsmith_colors_light = signalsmith_colors[:2:-1]
-signalsmith_colors_light[0] = [1, 1, 1];
-signalsmith_colors_light[-1] = [0.4772, 0.0889, 0.1];
-pyplot.register_cmap(cmap=LinearSegmentedColormap.from_list('signalsmith', signalsmith_colors))
-pyplot.register_cmap(cmap=LinearSegmentedColormap.from_list('signalsmith_light', signalsmith_colors_light))
-pyplot.rcParams['image.cmap'] = 'signalsmith'
 colors = ["#%02X%02X%02X"%tuple([round(v*255) for v in c]) for c in rgb]
 
 def common_style(figure, axes):
@@ -146,44 +137,78 @@ def save(prefix, figure, legend_loc=0, dpi=0, styleOffset=0):
 		figure.savefig(prefix + '.mono.svg', bbox_inches='tight')
 	pyplot.close(figure)
 
-def enhanceFigure(figure):
+def enhanceFigure(figure, nrows=1, ncols=1):
 	def boundSave(prefix, legend_loc=0, dpi=90, styleOffset=0):
 		return save(prefix, figure, legend_loc=legend_loc, dpi=dpi, styleOffset=styleOffset)
+	def boundSubGrid(yx, size=(1, 1), **kwargs):
+		pyplot.figure(figure.number);
+		return pyplot.subplot2grid((nrows, ncols), yx, size[0], size[1], **kwargs)
 	figure.save = boundSave
+	figure.gridPlot = boundSubGrid
 	return figure
 	
 rowStretch = 0.25
 
-def small(nrows=1, ncols=1, *args, **kwargs):
+def small(nrows=1, ncols=1, stretch=True, *args, **kwargs):
 	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
-	figure.set_size_inches(4.5, 3*(1 + (nrows - 1)*rowStretch))
+	figure.set_size_inches(4.5, 3*(1 + (nrows - 1)*rowStretch*stretch))
+	return enhanceFigure(figure, nrows, ncols), axes
+
+def smallFigure(nrows=1, ncols=1, stretch=True, *args, **kwargs):
+	figure = pyplot.figure(*args, **kwargs);
+	figure.set_size_inches(4.5, 3*(1 + (nrows - 1)*rowStretch*stretch))
+	return enhanceFigure(figure, nrows, ncols)
+
+def medium(nrows=1, ncols=1, stretch=True, *args, **kwargs):
+	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
+	figure.set_size_inches(6.5, 4*(1 + (nrows - 1)*rowStretch*stretch))
 	return enhanceFigure(figure), axes
 
-def medium(nrows=1, ncols=1, *args, **kwargs):
+def mediumFigure(nrows=1, ncols=1, stretch=True, *args, **kwargs):
+	figure = pyplot.figure(*args, **kwargs);
+	figure.set_size_inches(6.5, 4*(1 + (nrows - 1)*rowStretch*stretch))
+	return enhanceFigure(figure, nrows, ncols)
+
+def tall(nrows=1, ncols=1, stretch=True, *args, **kwargs):
 	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
-	figure.set_size_inches(6.5, 4*(1 + (nrows - 1)*rowStretch))
+	figure.set_size_inches(4.5, 5.5*(1 + (nrows - 1)*rowStretch*stretch))
 	return enhanceFigure(figure), axes
 
-def tall(nrows=1, ncols=1, *args, **kwargs):
+def tallFigure(nrows=1, ncols=1, stretch=True, *args, **kwargs):
+	figure = pyplot.figure(*args, **kwargs);
+	figure.set_size_inches(4.5, 5.5*(1 + (nrows - 1)*rowStretch*stretch))
+	return enhanceFigure(figure, nrows, ncols)
+
+def short(nrows=1, ncols=1, stretch=True, *args, **kwargs):
 	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
-	figure.set_size_inches(4.5, 5.5*(1 + (nrows - 1)*rowStretch))
+	figure.set_size_inches(7, 3*(1 + (nrows - 1)*rowStretch*stretch))
 	return enhanceFigure(figure), axes
 
-def short(nrows=1, ncols=1, *args, **kwargs):
+def shortFigure(nrows=1, ncols=1, stretch=True, *args, **kwargs):
+	figure = pyplot.figure(*args, **kwargs);
+	figure.set_size_inches(7, 3*(1 + (nrows - 1)*rowStretch*stretch))
+	return enhanceFigure(figure, nrows, ncols)
+
+def wide(nrows=1, ncols=1, stretch=True, *args, **kwargs):
 	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
-	figure.set_size_inches(7, 3*(1 + (nrows - 1)*rowStretch))
+	figure.set_size_inches(11, min(15, 4*(1 + (nrows - 1)*rowStretch*stretch)))
 	return enhanceFigure(figure), axes
 
-def wide(nrows=1, ncols=1, *args, **kwargs):
-	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
-	figure.set_size_inches(11, 4*(1 + (nrows - 1)*rowStretch))
-	return enhanceFigure(figure), axes
+def wideFigure(nrows=1, ncols=1, stretch=True, *args, **kwargs):
+	figure = pyplot.figure(*args, **kwargs);
+	figure.set_size_inches(11, min(15, 4*(1 + (nrows - 1)*rowStretch*stretch)))
+	return enhanceFigure(figure, nrows, ncols)
 
 def full(nrows=1, ncols=1, *args, **kwargs):
 	figure, axes = pyplot.subplots(nrows=nrows, ncols=ncols, *args, **kwargs)
 	figure.set_size_inches(16, 10) # Doesn't stretch, because it's page-sized
 	return enhanceFigure(figure), axes
-	
+
+def fullFigure(nrows=1, ncols=1, *args, **kwargs):
+	figure = pyplot.figure(*args, **kwargs);
+	figure.set_size_inches(16, 10) # Doesn't stretch, because it's page-sized
+	return enhanceFigure(figure, nrows, ncols)
+
 import random
 import shutil
 import subprocess
