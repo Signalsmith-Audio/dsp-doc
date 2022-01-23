@@ -142,3 +142,39 @@ TEST("Box stack properties", box_stack_properties) {
 	}
 	return test.pass();
 }
+
+TEST("Box stack custom ratios", box_stack_custom) {
+	using Stack = signalsmith::envelopes::BoxStackFilter<float>;
+	using Filter = signalsmith::envelopes::BoxFilter<float>;
+	
+	Filter filterA(61), filterB(31), filterC(11); // Effective length is 101, because a length-1 box-filter does nothing
+
+	Stack stack(50, 1);
+	stack.resize(101, {6, 3, 1});
+	
+	for (int i = 0; i < 1000; ++i) {
+		float signal = test.random(-1, 1);
+		float stackResult = stack(signal);
+		float filterResult = filterC(filterB(filterA(signal)));
+		TEST_ASSERT(stackResult == filterResult);
+	}
+	
+	return test.pass();
+}
+
+TEST("Box stack handles zero sizes without crashing", box_stack_zero_depth) {
+	using Stack = signalsmith::envelopes::BoxStackFilter<float>;
+
+	// Results don't have to be good/usable, just not crash.  It's assumed this is a temporary state until its configured properly.
+
+	Stack stack(100, 1);
+	stack.resize(100, 0);
+	
+	Stack stack2(100, 0);
+	Stack stack3(100, -1);
+	
+	Stack stack4(0, 4);
+	stack4.resize(-1, -1);
+
+	return test.pass();
+}

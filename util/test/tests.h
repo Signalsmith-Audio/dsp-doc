@@ -10,6 +10,7 @@
 #include <functional>
 #include <cmath>
 #include <random>
+#include <valarray>
 
 #define LOG_EXPR(expr) std::cout << #expr << " = " << (expr) << std::endl;
 
@@ -108,6 +109,12 @@ public:
 	int randomInt(int low, int high) {
 		std::uniform_int_distribution<int> distribution(low, high);
 		return distribution(testList.randomEngine);
+	}
+	template<typename V>
+	std::valarray<V> randomArray(size_t size, double low=-1, double high=-1) {
+		std::valarray<V> result(size);
+		for (auto &v : result) v = random(low, high);
+		return result;
 	}
 	
 	template<class ...Args>
