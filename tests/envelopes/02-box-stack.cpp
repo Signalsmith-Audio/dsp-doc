@@ -162,6 +162,20 @@ TEST("Box stack custom ratios", box_stack_custom) {
 	return test.pass();
 }
 
+TEST("Box stack optimal sizes are the right size", box_stack_optimal_size) {
+	using Stack = signalsmith::envelopes::BoxStackFilter<float>;
+	
+	for (size_t i = 1; i < 20; ++i) {
+		auto ratios = Stack::optimalRatios(i);
+		TEST_ASSERT(ratios.size() == i);
+		
+		double sum = 0;
+		for (auto r : ratios) sum += r;
+		// Close enough to 1
+		TEST_ASSERT(sum >= 0.9999 && sum <= 1.0001);
+	}
+}
+
 TEST("Box stack handles zero sizes without crashing", box_stack_zero_depth) {
 	using Stack = signalsmith::envelopes::BoxStackFilter<float>;
 
