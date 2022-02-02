@@ -81,6 +81,13 @@ TEST("Kaiser window (heuristic optimal)", stft_kaiser_windows) {
 	std::vector<double> aliasingLimits = {-13, -41, -66, -92};
 
 	testKaiser(test, overlaps, aliasingLimits, false, true);
+
+	CsvWriter csv("kaiser-stats");
+	csv.line("bandwidth", "beta", "peak-dB", "energy-dB", "beta-optimal", "peak-dB", "energy-dB");
+	using Kaiser = signalsmith::windows::Kaiser;
+	for (double b = 1; b < 10; b += 0.5) {
+		csv.line(b, Kaiser::bandwidthToBeta(b, false), Kaiser::bandwidthToPeakDb(b, false), Kaiser::bandwidthToEnergyDb(b, false), Kaiser::bandwidthToBeta(b, true), Kaiser::bandwidthToPeakDb(b, true), Kaiser::bandwidthToEnergyDb(b, true));
+	}
 }
 TEST("Kaiser window (heuristic optimal P-R scaled)", stft_kaiser_windows_pr) {
 	std::vector<int> overlaps = {2, 4, 6, 8};

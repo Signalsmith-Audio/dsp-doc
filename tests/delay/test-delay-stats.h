@@ -8,13 +8,13 @@
 #include <cmath>
 #include <iostream>
 
-template<typename Sample, bool useReadWrite, class Test, class Delay>
+template<typename Sample, bool writeBeforeRead, class Test, class Delay>
 void simpleImpulseComparison(Test &test, Delay &delay) {
 	int impulseTime = 10;
 	int delaySamples = std::max(100, int(Delay::latency) + 10);
 	
 	double compensatedDelay = delaySamples - Delay::latency;
-	if (compensatedDelay < (useReadWrite ? 0 : 1)) return test.fail("Delay latency too high to test");
+	if (compensatedDelay < (writeBeforeRead ? 0 : 1)) return test.fail("Delay latency too high to test");
 	
 	int maxLength = delaySamples, testLength = maxLength + impulseTime + delaySamples;
 	delay.resize(maxLength);
@@ -24,10 +24,10 @@ void simpleImpulseComparison(Test &test, Delay &delay) {
 		Sample expected = (i == impulseTime + delaySamples) ? 1 : 0;
 
 		Sample output;
-		if (useReadWrite) {
-			output = delay.readWrite(input, compensatedDelay);
+		if (writeBeforeRead) {
+			output = delay.write(input).read(compensatedDelay);
 		} else {
-			output = delay.read(compensatedDelay);
+			output = delay.read(compensatedDelay - 1);
 			delay.write(input);
 		}
 		if (!test.closeEnough(expected, output, "impulse matches")) {
@@ -52,7 +52,7 @@ struct ImpulseAnalyser {
 		
 		for (int i = 0; i < impulseLength; ++i) {
 			Sample value = (i == 0) ? 1 : 0;
-			result[i] = delay.readWrite(value, delaySamples);
+			result[i] = delay.write(value).read(delaySamples);
 		}
 	}
 	

@@ -295,6 +295,11 @@ def progressDone(message=""):
 	sys.stdout.write("\033[K") # Clear the line
 	print(message)
 
+def csvStr(v):
+	v = str(v)
+	if "," in v or "\"" in v:
+		v = "\"" + v.replace("\"", "\"\"") + "\""
+	return v
 class Table:
 	def __init__(self, prefix, columns, cssClass=""):
 		self.prefix = prefix
@@ -335,7 +340,7 @@ class Table:
 			for value in row:
 				html += "\t\t\t<td>" + escape(str(value)) + "</td>\n"
 			html += "\t\t</tr>\n"
-			csv += ",".join([str(value) for value in row]) + "\n"
+			csv += ",".join([csvStr(value) for value in row]) + "\n"
 		html += "\t</tbody>\n</table>"
 		
 		base = self.prefix

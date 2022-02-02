@@ -36,7 +36,7 @@ TEST("Delay", delay_works) {
 
 	// Read out delayed samples
 	for (int i = 0; i < delayLength; ++i) {
-		double value = multiDelay.readWrite(0, delayLength);
+		double value = multiDelay.write(0).read(delayLength);
 		TEST_ASSERT(value == i);
 	}
 }
