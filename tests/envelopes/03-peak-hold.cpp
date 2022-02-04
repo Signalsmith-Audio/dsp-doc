@@ -54,3 +54,47 @@ TEST("Peak hold (example)", peak_hold_example) {
 	return test.pass();
 }
 
+TEST("Peak hold (push and pop)", peak_hold_push_pop) {
+	int maxLength = 200;
+	signalsmith::envelopes::PeakHold<float> peakHold(maxLength);
+
+	std::vector<float> signal(500);
+	for (auto &v : signal) v = test.random(-1, 1);
+	
+	int start = 0, end = 100;
+	peakHold.set(0);
+	for (int i = 0; i < end; ++i) {
+		peakHold.push(signal[i]);
+	}
+	
+	auto check = [&]() {
+		float expected = signal[start];
+		for (int i = start; i < end; ++i) {
+			expected = std::max(expected, signal[i]);
+		}
+		LOG_EXPR(expected)
+		LOG_EXPR(peakHold.read())
+		TEST_ASSERT(expected == peakHold.read());
+		LOG_EXPR(peakHold.size())
+		LOG_EXPR(start)
+		LOG_EXPR(end)
+		TEST_ASSERT(peakHold.size() == (end - start));
+	};
+	
+	for (; end < 200; ++end) {
+		peakHold.push(signal[end]);
+	}
+	check();
+	for (; start < 150; ++start) {
+		peakHold.pop();
+	}
+	check();
+	for (; end < 250; ++end) {
+		peakHold.push(signal[end]);
+	}
+	check();
+	for (; start < 160; ++start) {
+		peakHold.pop();
+	}
+	check();
+}
