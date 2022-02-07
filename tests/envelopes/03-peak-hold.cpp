@@ -72,12 +72,12 @@ TEST("Peak hold (push and pop)", peak_hold_push_pop) {
 		for (int i = start; i < end; ++i) {
 			expected = std::max(expected, signal[i]);
 		}
-		LOG_EXPR(expected)
-		LOG_EXPR(peakHold.read())
+//		LOG_EXPR(expected)
+//		LOG_EXPR(peakHold.read())
 		TEST_ASSERT(expected == peakHold.read());
-		LOG_EXPR(peakHold.size())
-		LOG_EXPR(start)
-		LOG_EXPR(end)
+//		LOG_EXPR(peakHold.size())
+//		LOG_EXPR(start)
+//		LOG_EXPR(end)
 		TEST_ASSERT(peakHold.size() == (end - start));
 	};
 	
@@ -86,6 +86,10 @@ TEST("Peak hold (push and pop)", peak_hold_push_pop) {
 	}
 	check();
 	for (; start < 150; ++start) {
+		peakHold.pop();
+	}
+	check();
+	for (; start < 171; ++start) {
 		peakHold.pop();
 	}
 	check();

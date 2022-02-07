@@ -50,7 +50,7 @@ python-%:
 
 out/test-%: $(shell find .. -iname "*.h") $(shell find tests/$* -iname "*.cpp")
 	TEST_CPP_FILES=$$(find tests/$* -iname "*.cpp" -not -path "*/_*/*" | sort) ;\
-	echo "Building benchmarks:" ;\
+	echo "Building tests:" ;\
 	echo "$${TEST_CPP_FILES}" | sed 's/^/     /' ;\
 	mkdir -p out ;\
 	g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
