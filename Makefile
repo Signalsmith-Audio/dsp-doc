@@ -102,7 +102,8 @@ check-main-commit:
 
 update-main-commit:
 	@CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
-		echo "$$CURRENT_COMMIT" > dsp-commit.txt
+		echo "$$CURRENT_COMMIT" > dsp-commit.txt ; \
+		git commit dsp-commit.txt -m "Update main library commit"
 
 ############## Docs and releases ##############
 

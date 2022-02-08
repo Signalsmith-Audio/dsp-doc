@@ -54,8 +54,12 @@ def set_style(figure, axes, color=True, dashesInterleaved=True, legend_loc=None,
 		line = lines[index]
 		line.set_linewidth(1)
 
-		c = rgb[styleIndex%len(rgb)] if color else 'black'
-		line.set_color(c)
+		if color:
+			if (len(str(line.get_color())) < 3):
+				c = rgb[styleIndex%len(rgb)]
+				line.set_color(c)
+		else:
+			line.set_color("black")
 
 		dashIndex = styleIndex%len(dashes) if dashesInterleaved else (index//len(rgb))%len(dashes)
 		lineWidth = lineWidthMultiplier*(lineWidthPower**index)*lineWidths[dashIndex];
@@ -103,8 +107,9 @@ def set_style(figure, axes, color=True, dashesInterleaved=True, legend_loc=None,
 			axes.grid(alpha=0)
 
 def save(prefix, figure, legend_loc=0, dpi=0, styleOffset=0):
-	if dpi == 0:
-		dpi == 90
+	origDpi = dpi;
+	if dpi <= 0:
+		dpi = 90
 		if "@2x.png" in prefix:
 			dpi = 180
 	dirname = os.path.dirname(prefix)
@@ -135,7 +140,11 @@ def save(prefix, figure, legend_loc=0, dpi=0, styleOffset=0):
 			set_style(figure, axes, color=False, dashesInterleaved=True, legend_loc=legend_loc)
 		print(prefix + '.mono')
 		figure.savefig(prefix + '.mono.svg', bbox_inches='tight')
-	pyplot.close(figure)
+
+	if ".png" in prefix and "@" not in prefix and origDpi == 0:
+		save(prefix.replace(".png", "@2x.png"), figure, legend_loc=legend_loc, dpi=dpi*2, styleOffset=styleOffset)
+	else:
+		pyplot.close(figure)
 
 def enhanceFigure(figure, nrows=1, ncols=1):
 	def boundSave(prefix, legend_loc=0, dpi=90, styleOffset=0):
