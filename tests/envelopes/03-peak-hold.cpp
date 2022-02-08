@@ -56,7 +56,8 @@ TEST("Peak hold (example)", peak_hold_example) {
 
 TEST("Peak hold (push and pop)", peak_hold_push_pop) {
 	int maxLength = 200;
-	signalsmith::envelopes::PeakHold<float> peakHold(maxLength);
+	signalsmith::envelopes::PeakHold<float> peakHold(10);
+	peakHold.resize(maxLength);
 
 	std::vector<float> signal(500);
 	for (auto &v : signal) v = test.random(-1, 1);
@@ -68,16 +69,11 @@ TEST("Peak hold (push and pop)", peak_hold_push_pop) {
 	}
 	
 	auto check = [&]() {
-		float expected = signal[start];
+		float expected = std::numeric_limits<float>::lowest();
 		for (int i = start; i < end; ++i) {
 			expected = std::max(expected, signal[i]);
 		}
-//		LOG_EXPR(expected)
-//		LOG_EXPR(peakHold.read())
 		TEST_ASSERT(expected == peakHold.read());
-//		LOG_EXPR(peakHold.size())
-//		LOG_EXPR(start)
-//		LOG_EXPR(end)
 		TEST_ASSERT(peakHold.size() == (end - start));
 	};
 	
@@ -102,3 +98,110 @@ TEST("Peak hold (push and pop)", peak_hold_push_pop) {
 	}
 	check();
 }
+
+TEST("Peak hold (push and pop random)", peak_hold_push_pop_random) {
+	int maxLength = 200;
+	signalsmith::envelopes::PeakHold<float> peakHold(maxLength);
+
+	std::vector<float> signal(5000);
+	for (auto &v : signal) {
+		double r = test.random(0, 1);
+		v = 2*r*r - 1;
+	}
+	
+	peakHold.set(0);
+	int start = 0, end = 0;
+//	int frame = 0;
+	auto check = [&]() {
+		float expected = std::numeric_limits<float>::lowest();
+		for (int i = start; i < end; ++i) {
+			expected = std::max(expected, signal[i]);
+		}
+		
+//		// debugging stuff
+//		{
+//			CsvWriter csv("frames/peak-hold-" + std::to_string(frame++));
+//			peakHold._dumpState(csv);
+//		}
+//		if (expected != peakHold.read()) {
+//			CsvWriter csv("peak-hold-error");
+//			peakHold._dumpState(csv);
+//		}
+//		LOG_EXPR(signal[end - 1]);
+//		LOG_EXPR(start);
+//		LOG_EXPR(end);
+//		LOG_EXPR(expected);
+//		LOG_EXPR(peakHold.read());
+
+		TEST_ASSERT(expected == peakHold.read());
+		TEST_ASSERT(peakHold.size() == (end - start));
+	};
+
+	while (1) {
+		int newEnd = test.randomInt(end, start + maxLength);
+		if (newEnd >= int(signal.size())) break;
+		while (end < newEnd) {
+			peakHold.push(signal[end]);
+			++end;
+			check();
+		}
+		
+		int newStart = test.randomInt(start, end - 1);
+		while (start < newStart) {
+			peakHold.pop();
+			++start;
+			check();
+		}
+	}
+}
+
+//TEST("Peak hold (overflow)", peak_hold_overflow) {
+//	int maxLength = 200;
+//	signalsmith::envelopes::PeakHold<float> peakHold(maxLength);
+//
+//	std::vector<float> signal(5000);
+//	for (auto &v : signal) {
+//		v = test.random(-1, 1);
+//	}
+//
+//	// Enough random data to overflow an `int` index
+//	for (int r = 0; r < 4; ++r) {
+//		LOG_EXPR(r);
+//		int intMax = std::numeric_limits<int>::max();
+//		for (int i = 0; i < intMax - 10; ++i) {
+//			peakHold(test.random(0, 1));
+//			if (i%10000000 == 0) {
+//				LOG_EXPR(i);
+//				LOG_EXPR(i/float(intMax));
+//			}
+//		}
+//	}
+//
+//	peakHold.set(0);
+//	int start = 0, end = 0;
+//	auto check = [&]() {
+//		float expected = std::numeric_limits<float>::lowest();
+//		for (int i = start; i < end; ++i) {
+//			expected = std::max(expected, signal[i]);
+//		}
+//		TEST_ASSERT(expected == peakHold.read());
+//		TEST_ASSERT(peakHold.size() == (end - start));
+//	};
+//
+//	while (1) {
+//		int newEnd = test.randomInt(end, start + maxLength);
+//		if (newEnd >= int(signal.size())) break;
+//		while (end < newEnd) {
+//			peakHold.push(signal[end]);
+//			++end;
+//			check();
+//		}
+//
+//		int newStart = test.randomInt(start, end - 1);
+//		while (start < newStart) {
+//			peakHold.pop();
+//			++start;
+//			check();
+//		}
+//	}
+//}

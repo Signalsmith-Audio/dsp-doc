@@ -21,4 +21,6 @@ def plainPlot(name, legend_loc="best"):
 	axes.set(ylabel="speed (higher is better)", xticks=xticks, xticklabels=xlabels);
 	figure.save("%s.svg"%name, legend_loc=legend_loc)
 
-plainPlot("envelopes_peak_hold")
+plainPlot("envelopes_peak_hold_double")
+plainPlot("envelopes_peak_hold_float")
+plainPlot("envelopes_peak_hold_int")

@@ -5,7 +5,6 @@
 #include "_previous/signalsmith-run-length-amortised.h"
 #include "_previous/signalsmith-constant-v1.h"
 
-
 template<typename Sample, class PeakHold>
 struct PeakHoldImpl {
 	int inputSize;
@@ -21,7 +20,7 @@ struct PeakHoldImpl {
 };
 
 template<typename Sample>
-void benchmarkComplex(Test &test, std::string name) {
+void benchmarkPeakHold(Test &test, std::string name) {
 	Benchmark<int> benchmark(name, "size");
 
 	benchmark.add<PeakHoldImpl<Sample, signalsmith::envelopes::PeakHold<Sample>>>("current");
@@ -41,5 +40,7 @@ void benchmarkComplex(Test &test, std::string name) {
 }
 
 TEST("Peak hold", peak_hold) {
-	benchmarkComplex<double>(test, "envelopes_peak_hold");
+	benchmarkPeakHold<double>(test, "envelopes_peak_hold_double");
+	benchmarkPeakHold<float>(test, "envelopes_peak_hold_float");
+	benchmarkPeakHold<int>(test, "envelopes_peak_hold_int");
 }
