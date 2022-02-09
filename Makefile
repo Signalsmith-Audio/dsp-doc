@@ -100,6 +100,7 @@ check-main-commit:
 			exit 1; \
 		fi;
 
+# Forces you to assert that you've tested all your changes
 update-main-commit:
 	@CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
 		echo "$$CURRENT_COMMIT" > dsp-commit.txt ; \
@@ -111,6 +112,14 @@ update-main-commit:
 
 release: check-git clean all doxygen publish publish-git
 
+bump-%: check-git clean all
+	@VERSION=$$(python version.py bump-$*) ; \
+		pushd .. && git commit -a -m "Release v$$VERSION" && git tag "v$$VERSION" ; \
+		popd && git commit -a -m "Release v$$VERSION" && git tag "v$$VERSION" ;
+
+release-%: bump-% doxygen publish publish-git
+	echo "Released"
+	
 check-git: check-main-commit
 	git diff-index --quiet HEAD || (git status && exit 1)
 	cd .. && git diff-index --quiet HEAD || (git status && exit 1)

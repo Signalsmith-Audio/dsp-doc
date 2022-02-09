@@ -56,3 +56,5 @@ with open("tests/common/version.cpp") as testFile:
 code = code.replace("SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(startVersion), "SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(version))
 with open("tests/common/version.cpp", 'w') as testFile:
 	testFile.write(code)
+
+print(newVersion)
