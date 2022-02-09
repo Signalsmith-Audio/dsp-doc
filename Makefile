@@ -106,6 +106,10 @@ update-main-commit:
 		echo "$$CURRENT_COMMIT" > dsp-commit.txt ; \
 		git commit dsp-commit.txt -m "Update main library commit"
 
+check-git: check-main-commit
+	git diff-index --quiet HEAD || (git status && exit 1)
+	cd .. && git diff-index --quiet HEAD || (git status && exit 1)
+
 ############## Docs and releases ##############
 
 # These rely on specific things in my dev setup, but you probably don't need to run them yourself
@@ -120,15 +124,10 @@ bump-%: check-git clean all
 release-%: bump-% doxygen publish publish-git
 	echo "Released"
 	
-check-git: check-main-commit
-	git diff-index --quiet HEAD || (git status && exit 1)
-	cd .. && git diff-index --quiet HEAD || (git status && exit 1)
-
 doxygen:
 	doxygen Doxyfile-local
 
 publish:
-	find out -iname \*\@2x.png -exec rm {} \;
 	find out -iname \*.csv -exec rm {} \;
 	publish-signalsmith-audio /code/dsp
 	cd util && python article
@@ -139,4 +138,6 @@ publish-git:
 	publish-signalsmith-git /code/dsp-doc.git ../dsp/
 	# GitHub
 	cd .. && git push --all github
+	cd .. && git push --tags github
 	git push --all github
+	git push --tags github

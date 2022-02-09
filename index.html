@@ -16,7 +16,7 @@
 	<body class="no-footer">
 		<header class="blog">
 			<nav>
-				<a href="/"><img src="/style/images/logo/square128.png" height="48" alt=""></a>
+				<a href="/"><img src="/style/images/logo-v3/square.png" height="48" alt=""></a>
 				<a href="../../">Signalsmith Audio</a>
 				<span class="link"></span>
 				<a href="#">DSP Library</a>
@@ -35,6 +35,7 @@
 			<ul>
 				<li>Delay tools (circular buffers, single/multi-channel delay-lines)</li>
 				<li>Interpolators (Lagrange, polyphase, Kaiser-sinc)</li>
+				<li>Envelope tools (e.g. box-filter, peak-hold)</li>
 				<li>FFT and spectral processing (including multi-channel STFT)</li>
 			</ul>
 			
@@ -60,11 +61,11 @@
 			</code></pre><figcaption>There's a <a href="https://github.com/signalsmith-audio/dsp-doc" target="_blank">GitHub mirror</a> for this too</figcaption></figure>
 			<h3>Goals</h3>
 			<p>Where reasonable, the tests should measure actual output quality (not just basic correctness and smoke-tests).</p>
-			<p>For example, here's the aliasing/accuracy performance of a delay line with a 20-point windowed-sinc:</p>
-			<figure><img src="out/analysis/delay-random-access-sinc20.svg"></figure>
+			<p>For example, here's the aliasing/accuracy performance of a delay line with windowed-sinc interpolation:</p>
+			<figure><img src="out/analysis/interpolator-KaiserSincN.svg"></figure>
 			<p>The automated tests check this performance for various input bandwidths, using a table like this:</p>
 			<figure><pre><code class="language-cpp">
-				// A table of acceptable limits
+				// A table of acceptable limits for the 20-point windowed-sinc
 				double bandwidth[] = {90, 80, 50, 25, 12.5};
 				double aliasing[] = {-20.5, -61, -70.5, -76, -77.5};
 				double ampLow[] = {-2, -0.02, -0.01, -0.01, -0.01};
