@@ -1,8 +1,8 @@
-PROJECT_NAME           = "Signalsmith Audio's DSP Library"
-PROJECT_NUMBER         = 1.0.0
-PROJECT_BRIEF          = Useful C++ classes/templates for audio effects
+PROJECT_NAME = "Signalsmith Audio's DSP Library"
+PROJECT_NUMBER = 1.0.0
+PROJECT_BRIEF = Useful C++ classes/templates for audio effects
 
-OUTPUT_DIRECTORY       = .
+OUTPUT_DIRECTORY = .
 
 INPUT = ../
 EXCLUDE = ./
