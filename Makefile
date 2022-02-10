@@ -116,12 +116,14 @@ check-git: check-main-commit
 
 release: check-git clean all doxygen publish publish-git
 
-bump-%: check-git clean all
+bump-%: clean all
 	@VERSION=$$(python version.py bump-$*) ; \
 		pushd .. && git commit -a -m "Release v$$VERSION" && git tag "v$$VERSION" ; \
-		popd && git commit -a -m "Release v$$VERSION" && git tag "v$$VERSION" ;
+		CURRENT_COMMIT=$$(git log --format="%H" -n 1);
+		popd && echo "$$CURRENT_COMMIT" > dsp-commit.txt ; \
+		git commit -a -m "Release v$$VERSION" && git tag "v$$VERSION" ;
 
-release-%: bump-% doxygen publish publish-git
+release-%: check-git bump-% doxygen publish publish-git
 	echo "Released"
 	
 doxygen:

@@ -14,7 +14,7 @@ TEST("Peak hold", peak_hold) {
 	}
 	
 	int maxLength = 100, holdLength = 50;
-	float startingPeak = 0;
+	float startingPeak = -5;
 	signalsmith::envelopes::PeakHold<float> peakHold(maxLength);
 	TEST_ASSERT(peakHold.size() == maxLength);
 	peakHold.reset(5);
@@ -33,7 +33,6 @@ TEST("Peak hold", peak_hold) {
 		for (int j = start; j <= i; ++j) {
 			peak = std::max(peak, signal[j]);
 		}
-		
 		TEST_ASSERT(result == peak);
 	}
 	
