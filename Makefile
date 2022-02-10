@@ -139,7 +139,7 @@ publish-git:
 	cd .. && publish-signalsmith-git /code/dsp.git
 	publish-signalsmith-git /code/dsp-doc.git ../dsp/
 	# GitHub
-	cd .. && git push --all github
+	cd .. && git push github
 	cd .. && git push --tags github
-	git push --all github
+	git push github
 	git push --tags github

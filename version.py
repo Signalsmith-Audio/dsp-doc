@@ -50,6 +50,13 @@ text = text.replace("PROJECT_NUMBER = " + oldVersion, "PROJECT_NUMBER = " + newV
 with open("Doxyfile", 'w') as doxyfile:
 	doxyfile.write(text)
 
+text = ""
+with open("../README.md") as readme:
+	text = readme.read()
+text = text.replace("SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(startVersion), "SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(version))
+with open("../README.md", 'w') as readme:
+	readme.write(text)
+
 code = ""
 with open("tests/common/version.cpp") as testFile:
 	code = testFile.read()
