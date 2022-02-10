@@ -42,7 +42,7 @@ out/test: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
 
 test-% : out/test-%
 	mkdir -p out/analysis
-	cd out/analysis && ../test-$*
+	cd out/analysis && ../test-$* --seed=1644401155
 	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python
 
 python-%:

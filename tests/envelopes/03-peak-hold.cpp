@@ -36,6 +36,23 @@ TEST("Peak hold", peak_hold) {
 		
 		TEST_ASSERT(result == peak);
 	}
+	
+	// Test all sizes
+	for (int size = 0; size <= maxLength; ++size) {
+		peakHold.reset();
+		peakHold.set(size);
+		for (int i = 0; i < length; ++i) {
+			float actual = peakHold(signal[i]);
+			TEST_ASSERT(actual == peakHold.read());
+			if (i >= size - 1) {
+				float peak = std::numeric_limits<float>::lowest();
+				for (int j = i + 1 - size; j <= i; ++j) {
+					peak = std::max(peak, signal[j]);
+				}
+				TEST_ASSERT(peakHold.read() == peak);
+			}
+		}
+	}
 }
 
 TEST("Peak hold (example)", peak_hold_example) {
@@ -111,7 +128,6 @@ TEST("Peak hold (push and pop random)", peak_hold_push_pop_random) {
 	
 	peakHold.set(0);
 	int start = 0, end = 0;
-//	int frame = 0;
 	auto check = [&]() {
 		float expected = std::numeric_limits<float>::lowest();
 		for (int i = start; i < end; ++i) {
@@ -154,6 +170,21 @@ TEST("Peak hold (push and pop random)", peak_hold_push_pop_random) {
 		}
 	}
 }
+
+TEST("Peak hold (boundary bug)", peak_hold_boundary_bug) {
+	signalsmith::envelopes::PeakHold<float> peakHold(200);
+	peakHold.set(0);
+
+	peakHold.push(2);
+	for (int i = 1; i < 10; ++i) {
+		peakHold.push(1);
+	}
+	TEST_ASSERT(peakHold.read() == 2);
+	peakHold.pop();
+	TEST_ASSERT(peakHold.read() == 1);
+}
+
+// TODO: test that expanding size re-includes previous values
 
 //TEST("Peak hold (overflow)", peak_hold_overflow) {
 //	int maxLength = 200;

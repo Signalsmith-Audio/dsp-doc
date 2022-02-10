@@ -81,3 +81,24 @@ TEST("Box sum (drift)", box_sum_drift) {
 		}
 	}
 }
+
+TEST("Box filter (example)", box_filter_example) {
+	int boxLength = 100;
+	signalsmith::envelopes::BoxFilter<double> boxFilter(boxLength + 100);
+	boxFilter.set(boxLength);
+
+	signalsmith::envelopes::CubicLfo fast, slow;
+	fast.set(-3, 3, 0.08, 1, 1);
+	slow.set(-5, 5, 0.005, 1, 1);
+	
+	CsvWriter csv("box-filter-example");
+	csv.line("i", "signal", "box-filter (100)");
+	for (int i = -boxLength; i < boxLength*6; ++i) {
+		double signal = fast.next() + slow.next();
+		double smoothed = boxFilter(signal);
+		if (i >= 0) {
+			csv.line(i, signal, smoothed);
+		}
+	}
+	return test.pass();
+}
