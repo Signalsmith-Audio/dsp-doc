@@ -84,11 +84,6 @@ out/benchmark-%: $(shell find .. -iname "*.h") $(shell find benchmarks/$* -iname
 
 ##
 
-analysis-animations:
-	cd out/analysis && \
-		find ../../tests -iname \*.py -print0 \
-		| xargs -0 -n1 -I '{}' python {} animate
-
 check-main-commit:
 	@CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
 		KNOWN_COMMIT=$$(cat dsp-commit.txt) ; \
@@ -116,6 +111,7 @@ check-git: check-main-commit
 
 release: check-git clean all doxygen publish publish-git
 
+# bump-patch, bump-minor, bump-major
 bump-%: clean all
 	@VERSION=$$(python version.py bump-$*) ; \
 		pushd .. && git commit -a -m "Release v$$VERSION" && git tag "v$$VERSION" ; \

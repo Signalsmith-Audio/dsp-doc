@@ -1,3 +1,3 @@
-Copyright (c) 2021 Geraint Luff / Signalsmith Audio Ltd.
+Copyright (c) 2021-2022 Geraint Luff / Signalsmith Audio Ltd.
 
-Unless released elsewhere under another license, the contents of this directory is licensed for use and redistribution (including modified versions) solely for developing, testing or documenting the Signalsmith Audio DSP Library.
+Unless released elsewhere under another license, or a license/description is included in the file itself, the contents of this directory is licensed for use and redistribution (including modified versions) solely for developing, testing or documenting the Signalsmith Audio DSP Library.
