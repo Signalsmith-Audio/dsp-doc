@@ -168,6 +168,14 @@ TEST("Peak hold (push and pop random)", peak_hold_push_pop_random) {
 			check();
 		}
 	}
+	
+	// Back expands when you resize, including older samples
+	for (int repeat = 0; repeat < 50; ++repeat) {
+		int newLength = test.randomInt(0, maxLength);
+		start = end - newLength;
+		peakHold.set(newLength);
+		check();
+	}
 }
 
 TEST("Peak hold (boundary bug)", peak_hold_boundary_bug) {
