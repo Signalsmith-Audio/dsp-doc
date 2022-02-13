@@ -118,11 +118,6 @@ bump-%: clean all
 		CURRENT_COMMIT=$$(git log --format="%H" -n 1); \
 		popd && echo "$$CURRENT_COMMIT" > dsp-commit.txt ; \
 		git commit -a -m "Release v$$VERSION" -e && git tag "v$$VERSION" ;
-
-release-%: check-git bump-% doxygen publish publish-git
-	echo "Released"
-unchecked-release-%: bump-% doxygen publish publish-git
-	echo "Released"
 	
 doxygen:
 	doxygen Doxyfile-local
