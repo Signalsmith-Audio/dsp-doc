@@ -99,7 +99,7 @@ check-main-commit:
 update-main-commit:
 	@CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
 		echo "$$CURRENT_COMMIT" > dsp-commit.txt ; \
-		git commit dsp-commit.txt -m "Update main library commit"
+		git commit dsp-commit.txt -m "Update main library commit" -e
 
 check-git: check-main-commit
 	git diff-index --quiet HEAD || (git status && exit 1)
@@ -114,12 +114,14 @@ release: check-git clean all doxygen publish publish-git
 # bump-patch, bump-minor, bump-major
 bump-%: clean all
 	@VERSION=$$(python version.py bump-$*) ; \
-		pushd .. && git commit -a -m "Release v$$VERSION" && git tag "v$$VERSION" ; \
-		CURRENT_COMMIT=$$(git log --format="%H" -n 1);
+		pushd .. && git commit -a -m "Release v$$VERSION" -e && git tag "v$$VERSION" ; \
+		CURRENT_COMMIT=$$(git log --format="%H" -n 1); \
 		popd && echo "$$CURRENT_COMMIT" > dsp-commit.txt ; \
-		git commit -a -m "Release v$$VERSION" && git tag "v$$VERSION" ;
+		git commit -a -m "Release v$$VERSION" -e && git tag "v$$VERSION" ;
 
 release-%: check-git bump-% doxygen publish publish-git
+	echo "Released"
+unchecked-release-%: bump-% doxygen publish publish-git
 	echo "Released"
 	
 doxygen:

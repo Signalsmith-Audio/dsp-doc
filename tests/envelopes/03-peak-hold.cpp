@@ -173,9 +173,25 @@ TEST("Peak hold (push and pop random)", peak_hold_push_pop_random) {
 	for (int repeat = 0; repeat < 50; ++repeat) {
 		int newLength = test.randomInt(0, maxLength);
 		start = end - newLength;
-		peakHold.set(newLength);
+		if (repeat%2) {
+			peakHold.set(newLength);
+		} else {
+			// Defaults to true, so this is identical
+			peakHold.set(newLength, false);
+		}
 		check();
 	}
+	
+	peakHold.set(50, false);
+	float max50 = peakHold.read();
+	// Preserve current peak values
+	peakHold.set(80, true);
+	TEST_ASSERT(peakHold.size() == 80);
+	TEST_ASSERT(peakHold.read() == max50);
+
+	peakHold.set(40);
+	start = end - 40;
+	check();
 }
 
 TEST("Peak hold (boundary bug)", peak_hold_boundary_bug) {
