@@ -13,10 +13,11 @@ clean:
 #
 # make test-foo
 #	builds all tests in tests/foo/, excluding directories starting with "_"
-
+#
 # make benchmark-foo
 #	builds all tests in benchmarks/foo/, excluding directories starting with "_"
 #
+# For any of these, you can specify SEED=??? in the environment to reproduce randomised tests
 
 # Used for plots and stuff
 export PYTHONPATH=$(shell cd util && pwd)
@@ -42,7 +43,7 @@ out/test: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
 
 test-% : out/test-%
 	mkdir -p out/analysis
-	cd out/analysis && ../test-$* --seed=1644401155
+	cd out/analysis && ../test-$*
 	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python
 
 python-%:

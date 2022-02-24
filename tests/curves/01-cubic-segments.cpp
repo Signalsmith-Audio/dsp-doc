@@ -1,13 +1,13 @@
 #include <test/tests.h>
 #include "../common.h"
 
-#include "envelopes.h"
+#include "curves.h"
 
 #include <array>
 #include <vector>
 
 TEST("Cubic segments (example)", example) {
-	using Curve = signalsmith::envelopes::CubicSegmentCurve<float>;
+	using Curve = signalsmith::curves::CubicSegmentCurve<float>;
 	struct Point{
 		float x, y;
 		Point(float x, float y) : x(x), y(y) {}
@@ -46,17 +46,17 @@ TEST("Cubic segments (example)", example) {
 	return test.pass();
 }
 TEST("Cubic segments (gradient)", segment_gradient) {
-	using Segment = signalsmith::envelopes::CubicSegment<double>;
+	using Cubic = signalsmith::curves::Cubic<double>;
 	double x0 = test.random(-1, 1);
 
-	Segment s(
+	Cubic s(
 		x0,
 		test.random(-1, 1),
 		test.random(-1, 1),
 		test.random(-1, 1),
 		test.random(-1, 1)
 	);
-	Segment grad = s.dx();
+	Cubic grad = s.dx();
 	
 	for (int r = 0; r < 100; ++r) {
 		double x = test.random(x0, x0 + 2);
@@ -73,7 +73,7 @@ TEST("Cubic segments (gradient)", segment_gradient) {
 }
 
 TEST("Cubic segments (hermite)", segment_hermite) {
-	using Segment = signalsmith::envelopes::CubicSegment<double>;
+	using Cubic = signalsmith::curves::Cubic<double>;
 
 	for (int r = 0; r < 100; ++r) {
 		double x0 = test.random(-1, 1);
@@ -83,8 +83,8 @@ TEST("Cubic segments (hermite)", segment_hermite) {
 		double g0 = test.random(-5, 5);
 		double g1 = test.random(-5, 5);
 
-		Segment s = Segment::hermite(x0, x1, y0, y1, g0, g1);
-		Segment grad = s.dx();
+		Cubic s = Cubic::hermite(x0, x1, y0, y1, g0, g1);
+		Cubic grad = s.dx();
 		TEST_ASSERT(std::abs(s(x0) - y0) < 1e-6);
 		TEST_ASSERT(std::abs(s(x1) - y1) < 1e-6);
 		TEST_ASSERT(std::abs(grad(x0) - g0) < 1e-6);
@@ -93,17 +93,17 @@ TEST("Cubic segments (hermite)", segment_hermite) {
 }
 
 TEST("Cubic segments (known)", segment_known) {
-	using Segment = signalsmith::envelopes::CubicSegment<double>;
+	using Cubic = signalsmith::curves::Cubic<double>;
 
 	{
-		Segment s = Segment::smooth(0, 1, 2, 3, 0, 1, 2, 3);
+		Cubic s = Cubic::smooth(0, 1, 2, 3, 0, 1, 2, 3);
 		TEST_ASSERT(std::abs(s(0) - 0) < 1e-6);
 		TEST_ASSERT(std::abs(s.dx()(0) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s(1.5) - 1.5) < 1e-6);
 		TEST_ASSERT(std::abs(s.dx()(1.5) - 1) < 1e-6);
 	}
 	{
-		Segment s = Segment::smooth(0, 1, 2, 3, 0, 1, 0, 1);
+		Cubic s = Cubic::smooth(0, 1, 2, 3, 0, 1, 0, 1);
 		TEST_ASSERT(std::abs(s(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s.dx()(1) - 0) < 1e-6);
 		TEST_ASSERT(std::abs(s(2) - 0) < 1e-6);
@@ -111,7 +111,7 @@ TEST("Cubic segments (known)", segment_known) {
 	}
 
 	{ // monotonic
-		Segment s = Segment::smooth(0, 1, 2, 3, -1, 1, 0, 2, true);
+		Cubic s = Cubic::smooth(0, 1, 2, 3, -1, 1, 0, 2, true);
 		TEST_ASSERT(std::abs(s(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s.dx()(1) - 0) < 1e-6);
 		TEST_ASSERT(std::abs(s(2) - 0) < 1e-6);
@@ -120,7 +120,7 @@ TEST("Cubic segments (known)", segment_known) {
 }
 
 TEST("Cubic segments (random)", segment_random) {
-	using Segment = signalsmith::envelopes::CubicSegment<double>;
+	using Cubic = signalsmith::curves::Cubic<double>;
 	
 	for (int r = 0; r < 1000; ++r) {
 		bool monotonic = r%2;
@@ -130,8 +130,8 @@ TEST("Cubic segments (random)", segment_random) {
 		for (int i = 1; i < 5; ++i) x[i] = x[i - 1] + test.random(1e-10, 2);
 		for (auto &v : y) v = test.random(-10, 10) - 7.5;
 		
-		Segment sA = Segment::smooth(x[0], x[1], x[2], x[3], y[0], y[1], y[2], y[3], monotonic);
-		Segment sB = Segment::smooth(x[1], x[2], x[3], x[4], y[1], y[2], y[3], y[4], monotonic);
+		Cubic sA = Cubic::smooth(x[0], x[1], x[2], x[3], y[0], y[1], y[2], y[3], monotonic);
+		Cubic sB = Cubic::smooth(x[1], x[2], x[3], x[4], y[1], y[2], y[3], y[4], monotonic);
 
 		// The points agree
 		TEST_ASSERT(std::abs(sA(x[1]) - y[1]) < 1e-6);
@@ -165,10 +165,10 @@ TEST("Cubic segments (random)", segment_random) {
 }
 
 TEST("Cubic segments (duplicate points)", duplicate_points) {
-	using Segment = signalsmith::envelopes::CubicSegment<double>;
+	using Cubic = signalsmith::curves::Cubic<double>;
 
 	{ // Duplicate left point means it continues existing curve (straight here)
-		Segment s = Segment::smooth(1, 1, 2, 3, 1, 1, 2, 3);
+		Cubic s = Cubic::smooth(1, 1, 2, 3, 1, 1, 2, 3);
 		TEST_ASSERT(std::abs(s(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s.dx()(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s(2) - 2) < 1e-6);
@@ -176,7 +176,7 @@ TEST("Cubic segments (duplicate points)", duplicate_points) {
 	}
 
 	{ // Duplicate left point means it continues existing curve (quadratic here)
-		Segment s = Segment::smooth(1, 1, 2, 3, 1, 1, 0, 1);
+		Cubic s = Cubic::smooth(1, 1, 2, 3, 1, 1, 0, 1);
 		TEST_ASSERT(std::abs(s(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s.dx()(1) + 2) < 1e-6);
 		TEST_ASSERT(std::abs(s(2) - 0) < 1e-6);
@@ -184,7 +184,7 @@ TEST("Cubic segments (duplicate points)", duplicate_points) {
 	}
 
 	{ // Vertical also continues the curve
-		Segment s = Segment::smooth(1, 1, 2, 3, 0, 1, 2, 3);
+		Cubic s = Cubic::smooth(1, 1, 2, 3, 0, 1, 2, 3);
 		TEST_ASSERT(std::abs(s(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s.dx()(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s(2) - 2) < 1e-6);
@@ -192,7 +192,7 @@ TEST("Cubic segments (duplicate points)", duplicate_points) {
 	}
 
 	{ // or flat, if it's a min/max
-		Segment s = Segment::smooth(1, 1, 2, 3, 2, 1, 2, 3);
+		Cubic s = Cubic::smooth(1, 1, 2, 3, 2, 1, 2, 3);
 		TEST_ASSERT(std::abs(s(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s.dx()(1) - 0) < 1e-6);
 		TEST_ASSERT(std::abs(s(2) - 2) < 1e-6);
@@ -201,7 +201,7 @@ TEST("Cubic segments (duplicate points)", duplicate_points) {
 
 
 	{ // Duplicate right point means it continues existing curve (straight here)
-		Segment s = Segment::smooth(0, 1, 2, 2, 0, 1, 2, 2);
+		Cubic s = Cubic::smooth(0, 1, 2, 2, 0, 1, 2, 2);
 		TEST_ASSERT(std::abs(s(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s.dx()(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s(2) - 2) < 1e-6);
@@ -209,7 +209,7 @@ TEST("Cubic segments (duplicate points)", duplicate_points) {
 	}
 
 	{ // Duplicate right point means it continues existing curve (quadratic here)
-		Segment s = Segment::smooth(0, 1, 2, 2, 0, 1, 0, 0);
+		Cubic s = Cubic::smooth(0, 1, 2, 2, 0, 1, 0, 0);
 		TEST_ASSERT(std::abs(s(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s.dx()(1) - 0) < 1e-6);
 		TEST_ASSERT(std::abs(s(2) - 0) < 1e-6);
@@ -217,7 +217,7 @@ TEST("Cubic segments (duplicate points)", duplicate_points) {
 	}
 
 	{ // Vertical also continues the curve
-		Segment s = Segment::smooth(0, 1, 2, 2, 0, 1, 2, 3);
+		Cubic s = Cubic::smooth(0, 1, 2, 2, 0, 1, 2, 3);
 		TEST_ASSERT(std::abs(s(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s.dx()(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s(2) - 2) < 1e-6);
@@ -225,7 +225,7 @@ TEST("Cubic segments (duplicate points)", duplicate_points) {
 	}
 
 	{ // or flat, if it's a min/max
-		Segment s = Segment::smooth(0, 1, 2, 2, 0, 1, 2, 1);
+		Cubic s = Cubic::smooth(0, 1, 2, 2, 0, 1, 2, 1);
 		TEST_ASSERT(std::abs(s(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s.dx()(1) - 1) < 1e-6);
 		TEST_ASSERT(std::abs(s(2) - 2) < 1e-6);

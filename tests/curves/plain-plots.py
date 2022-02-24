@@ -10,6 +10,4 @@ def plainPlot(name, legend_loc="best", ylim=[None, None]):
 	axes.set(xlabel="time", ylim=ylim)
 	figure.save("%s.svg"%name, legend_loc=legend_loc)
 
-plainPlot("box-filter-example")
-plainPlot("peak-decay-linear", legend_loc="upper center", ylim=[0,10])
-plainPlot("peak-decay-linear-cascade", legend_loc="upper center", ylim=[0,10])
+plainPlot("cubic-segments-example")
