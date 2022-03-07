@@ -13,7 +13,7 @@ TEST("Cubic segments (gradient)", segment_gradient) {
 		float x0 = test.random(-10, 10), x1 = test.random(-10, 10);
 		float y0 = test.random(-10, 10), y1 = test.random(-10, 10);
 
-		Linear linear = Linear::fromPoints(x0, x1, y0, y1);
+		Linear linear{x0, x1, y0, y1};
 
 		TEST_ASSERT(std::abs(linear(x0) - y0) < accuracy);
 		TEST_ASSERT(std::abs(linear(x1) - y1) < accuracy);
