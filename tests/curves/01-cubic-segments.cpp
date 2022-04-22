@@ -40,9 +40,23 @@ TEST("Cubic segments (example)", example) {
 	CsvWriter csv("cubic-segments-example");
 	csv.line("x", "smooth", "monotonic", "linear");
 	
+	Plot2D plot(380, 160);
+	auto &smoothLine = plot.line(), &monotonicLine = plot.line(), &linearLine = plot.line();
+	
 	for (double x = -1; x < 7.5; x += 0.01) {
 		csv.line(x, curveSmooth(x), curveMonotonic(x), curveLinear(x));
+		smoothLine.add(x, curveSmooth(x));
+		monotonicLine.add(x, curveMonotonic(x));
+		linearLine.add(x, curveLinear(x));
 	}
+	plot.x.blank();
+	plot.y.blank();
+	plot.legend(-0.3, 0.8)
+		.line(smoothLine, "smooth")
+		.line(monotonicLine, "monotonic")
+		.line(linearLine.styleIndex, "linear");
+	plot.write("cubic-segments-example-cpp.svg");
+	
 	return test.pass();
 }
 TEST("Cubic segments (gradient)", segment_gradient) {

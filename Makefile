@@ -36,7 +36,7 @@ out/test: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
  		-Wpedantic -pedantic-errors \
 		"util/test/main.cpp" -I "util" \
 		-I tests/ $${TEST_CPP_FILES} \
-		-I "../" \
+		-I "../" -I "../util/" \
 		-o out/test
 
 ## Individual tests
@@ -58,7 +58,7 @@ out/test-%: $(shell find .. -iname "*.h") $(shell find tests/$* -iname "*.cpp")
  		-Wpedantic -pedantic-errors \
 		"util/test/main.cpp" -I "util" \
 		-I tests/ $${TEST_CPP_FILES} \
-		-I "../" \
+		-I "../" -I "../util/" \
 		-o out/test-$*
 
 ## Benchmarks
@@ -80,7 +80,7 @@ out/benchmark-%: $(shell find .. -iname "*.h") $(shell find benchmarks/$* -iname
  		-Wpedantic -pedantic-errors \
 		"util/test/main.cpp" -I "util" \
 		-I tests/ $${TEST_CPP_FILES} \
-		-I "../" -I "signalsmith-fft/" \
+		-I "../" -I "../util/" \
 		-o out/benchmark-$*
 
 ##
