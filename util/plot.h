@@ -113,8 +113,7 @@ public:
 				fill: #FFFFFFD9;
 			}
 			.svg-plot-legend {
-				stroke: #000;
-				stroke-width: 1px;
+				stroke: none;
 				fill: #FFFFFFE4;
 			}
 			.svg-plot-line {
