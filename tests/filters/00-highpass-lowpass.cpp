@@ -134,26 +134,36 @@ TEST("Butterworth filters", filters_butterworth) {
 }
 
 TEST("Butterworth plots", filters_butterworth_plots) {
-	Plot2D plot(250, 150);
-	auto drawLine = [&](double freq) {
-		signalsmith::filters::BiquadStatic<double> filter;
-		filter.lowpass(freq);
-		auto spectrum = getSpectrum(filter);
+	auto drawDesign = [](signalsmith::filters::BiquadDesign design, std::string name) {
+		Plot2D plot(250, 150);
+		auto drawLine = [&](double freq) {
+			signalsmith::filters::BiquadStatic<double> filter;
+			filter.lowpass(freq, 1.9, design);
+			auto spectrum = getSpectrum(filter);
 
-		auto &line = plot.line();
-		for (size_t i = 1; i < spectrum.size()/2; ++i) {
-			double f = i*1.0/spectrum.size();
-			line.add(f, ampToDb(std::abs(spectrum[i])));
-		}
-		return &line;
+			auto &line = plot.line();
+			for (size_t i = 1; i < spectrum.size()/2; ++i) {
+				double f = i*1.0/spectrum.size();
+				line.add(f, ampToDb(std::abs(spectrum[i])));
+			}
+			return &line;
+		};
+		drawLine(0.001*std::sqrt(10));
+		drawLine(0.01);
+		drawLine(0.01*std::sqrt(10));
+		drawLine(0.1);
+		drawLine(0.1*std::sqrt(10));
+//		drawLine(0.25);
+
+		plot.y.linear(-75, 1).minor(-3, "").minors(0, -6, -12, -24, -48, -72).label("dB");
+		plot.x.range(std::log, 0.001, 0.5).minors(0.001, 0.01, 0.1, 0.5)
+			.minor(0.001*std::sqrt(10), "").minor(0.01*std::sqrt(10), "").minor(0.1*std::sqrt(10), "")
+			.label("freq");
+		plot.write("filters-lowpass-" + name + ".svg");
 	};
-	auto *lineA = drawLine(0.01);
-	auto *lineB = drawLine(0.1);
-	auto *lineC = drawLine(0.25);
-
-	plot.y.linear(-75, 0).major(0).minor(-3, "").minors(-6, -12, -24, -48, -72).label("dB");
-	plot.x.range(std::log, 0.001, 0.5).minors(0.001, 0.01, 0.1, 0.5).label("freq");
-	plot.write("filters-lowpass.svg");
-
+	drawDesign(signalsmith::filters::BiquadDesign::bilinear, "bilinear");
+	drawDesign(signalsmith::filters::BiquadDesign::cookbook, "cookbook");
+	drawDesign(signalsmith::filters::BiquadDesign::oneSided, "oneSided");
+	drawDesign(signalsmith::filters::BiquadDesign::vicanek, "vicanek");
 	return test.pass();
 }
