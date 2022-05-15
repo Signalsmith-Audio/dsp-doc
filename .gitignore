@@ -3,5 +3,7 @@
 out/
 html/
 
+# Personal dev setup
 util/article
+tests/plot.h
 Doxyfile-local
