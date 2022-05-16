@@ -1238,7 +1238,7 @@ public:
 };
 
 class Grid : public Cell {
-	int columns = 0, rows = 0;
+	int _cols = 0, _rows = 0;
 	struct Item {
 		int column, row;
 		int width, height;
@@ -1269,8 +1269,8 @@ protected:
 				max = std::max(v, max);
 			}
 		};
-		std::vector<Range> colRange(columns);
-		std::vector<Range> rowRange(rows);
+		std::vector<Range> colRange(_cols);
+		std::vector<Range> rowRange(_rows);
 		for (auto &it : items) {
 			Bounds bounds = it.cell->layoutIfNeeded(style);
 			colRange[it.column].include(bounds.left);
@@ -1306,13 +1306,19 @@ protected:
 		writeItems(true, svg, style);
 	}
 public:
+	int rows() const {
+		return _rows;
+	}
+	int columns() const {
+		return _cols;
+	}
 	Cell & cell(int column, int row, int width=1, int height=1) {
 		column = std::max(0, column);
 		row = std::max(0, row);
 		width = std::max(1, width);
 		height = std::max(1, height);
-		columns = std::max(columns, column + width);
-		rows = std::max(rows, row + height);
+		_cols = std::max(_cols, column + width);
+		_rows = std::max(_rows, row + height);
 		for (auto &it : items) {
 			if (it.row == row && it.column == column && it.width == width && it.height == height) {
 				return *it.cell;

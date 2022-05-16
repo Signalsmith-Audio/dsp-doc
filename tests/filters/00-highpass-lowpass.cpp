@@ -122,7 +122,7 @@ void testButterworth(Test &&test, double freq, signalsmith::filters::BiquadDesig
 		}
 	}
 	// Narrower bandwidth has a slight bump
-	if (isBilinear || freq < 0.1){
+	if (isBilinear || freq < 0.1) {
 		filter.lowpass(freq, 1.89, design);
 		auto spectrum = getSpectrum(filter);
 		if (isMonotonic(spectrum, -1)) {
@@ -130,8 +130,8 @@ void testButterworth(Test &&test, double freq, signalsmith::filters::BiquadDesig
 			return test.fail("lowpass octave=1.89 should not be monotonic");
 		}
 	}
-	{
-		filter.highpass(freq, 1.89);
+	if (isBilinear || freq < 0.01) {
+		filter.highpass(freq, 1.89, design);
 		auto spectrum = getSpectrum(filter);
 		if (isMonotonic(spectrum, 1)) {
 			writeSpectrum(spectrum, "fail-butterworth-spectrum");
@@ -158,20 +158,20 @@ TEST("Butterworth plots", filters_butterworth_plots) {
 		Figure figure;
 		int plotCounter = 0;
 		auto drawDesign = [&](signalsmith::filters::BiquadDesign design, std::string designName) {
-			int plotIndex = plotCounter++;
-			int plotColumn = plotIndex, plotRow = 0;
-			auto &plotFocus = figure.cell(plotColumn, plotRow*2).plot(200, 50);
-			auto &plot = figure.cell(plotColumn, plotRow*2 + 1).plot(200, 150);
+			int plotColumn = plotCounter++;
+			int plotRow = 0;
+			auto &plotFocus = figure.cell(plotColumn, plotRow).plot(200, 50);
+			auto &plot = figure.cell(plotColumn, plotRow + 1).plot(200, 150);
 			auto drawLine = [&](double freq) {
 				signalsmith::filters::BiquadStatic<double> filter;
 				if (shape == 0) {
 					filter.lowpass(freq, design);
 				} else if (shape == 1) {
-					filter.highpass(freq, design);
+					filter.highpass(freq, 1.8, design);
 				} else if (shape == 2) {
-					filter.bandpass(freq, 1.66, design != signalsmith::filters::BiquadDesign::bilinear);
+					filter.bandpass(freq, 1.66, design);
 				} else {
-					filter.bandStop(freq);
+					filter.bandStop(freq, 1.66);
 				}
 				auto spectrum = getSpectrum(filter, 1e-10, 1024);
 
@@ -199,7 +199,7 @@ TEST("Butterworth plots", filters_butterworth_plots) {
 			plotFocus.x.range(std::log, 0.001, 0.5).minor(0.001, "").minor(0.01, "").minor(0.1, "").minor(0.5, "")
 				.minor(0.001*std::sqrt(10), "").minor(0.01*std::sqrt(10), "").minor(0.1*std::sqrt(10), "");
 
-			if (plotIndex == 0) {
+			if (plotColumn == 0) {
 				plot.y.label("dB");
 				plotFocus.y.label("dB");
 			} else {
