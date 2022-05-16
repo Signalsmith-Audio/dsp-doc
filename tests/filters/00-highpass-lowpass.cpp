@@ -40,28 +40,37 @@ TEST("Filter reset", filter_reset) {
 
 // Should be Butterworth when we don't specify a bandwidth
 template<typename Sample>
-void testButterworth(Test &&test, double freq) {
+void testButterworth(Test &&test, double freq, signalsmith::filters::BiquadDesign design=signalsmith::filters::BiquadDesign::bilinear) {
 	signalsmith::filters::BiquadStatic<Sample> filter;
 	
 	double zeroIsh = 1e-5; // -100dB
 	std::complex<double> one = 1;
+	bool isBilinear = (design == signalsmith::filters::BiquadDesign::bilinear);
 	
 	{
-		filter.lowpass(freq);
+		filter.lowpass(freq, design);
 		auto spectrum = getSpectrum(filter);
 		int nyquistIndex = (int)spectrum.size()/2;
-		
+
+		if (std::abs(spectrum[0] - one) > zeroIsh) return test.fail("1 at 0: ", spectrum[0]);
+
 		// -3dB at critical point
 		double criticalDb = ampToDb(interpSpectrum(spectrum, freq));
 		double expectedDb = ampToDb(std::sqrt(0.5));
 		double difference = std::abs(criticalDb - expectedDb);
-		if (difference > 0.001) {
-			writeSpectrum(spectrum, "fail-butterworth-spectrum");
-			test.log(criticalDb, " != ", expectedDb);
-			return test.fail("Butterworth critical frequency (lowpass)");
+		if (isBilinear || freq < 0.25) {
+			if (difference > 0.001) {
+				writeSpectrum(spectrum, "fail-butterworth-spectrum");
+				test.log(criticalDb, " != ", expectedDb);
+				return test.fail("Butterworth critical frequency (lowpass)");
+			}
+		} else {
+			// Slightly looser limits
+			if (difference > 0.01) return test.fail("Butterworth critical frequency (lowpass)");
 		}
-		if (std::abs(spectrum[nyquistIndex]) > zeroIsh) return test.fail("0 at Nyquist: ", spectrum[nyquistIndex]);
-		if (std::abs(spectrum[0] - one) > zeroIsh) return test.fail("1 at 0: ", spectrum[0]);
+		if (isBilinear) {
+			if (std::abs(spectrum[nyquistIndex]) > zeroIsh) return test.fail("0 at Nyquist: ", spectrum[nyquistIndex]);
+		}
 
 		if (!isMonotonic(spectrum, -1)) {
 			writeSpectrum(spectrum, "fail-butterworth-spectrum");
@@ -70,7 +79,7 @@ void testButterworth(Test &&test, double freq) {
 	}
 
 	{
-		filter.highpass(freq);
+		filter.highpass(freq, design);
 		auto spectrum = getSpectrum(filter);
 		int nyquistIndex = (int)spectrum.size()/2;
 		
@@ -78,9 +87,16 @@ void testButterworth(Test &&test, double freq) {
 		double criticalDb = ampToDb(interpSpectrum(spectrum, freq));
 		double expectedDb = ampToDb(std::sqrt(0.5));
 		double difference = std::abs(criticalDb - expectedDb);
-		if (difference > 0.001) return test.fail("Butterworth critical frequency (highpass)");
+		if (isBilinear || freq < 0.1) {
+			if (difference > 0.001) return test.fail("Butterworth critical frequency (highpass)");
+		} else {
+			// Slightly looser limits
+			if (difference > 0.01) return test.fail("Butterworth critical frequency (highpass)");
+		}
 		if (std::abs(spectrum[0]) > zeroIsh) return test.fail("0 at 0: ", spectrum[0]);
-		if (std::abs(spectrum[nyquistIndex] - one) > zeroIsh) return test.fail("1 at Nyquist: ", spectrum[nyquistIndex]);
+		if (isBilinear) {
+			if (std::abs(spectrum[nyquistIndex] - one) > zeroIsh) return test.fail("1 at Nyquist: ", spectrum[nyquistIndex]);
+		}
 
 		if (!isMonotonic(spectrum, 1)) {
 			writeSpectrum(spectrum, "fail-butterworth-spectrum");
@@ -90,7 +106,7 @@ void testButterworth(Test &&test, double freq) {
 
 	// Wider bandwidth is just softer, still monotonic
 	{
-		filter.lowpass(freq, 1.91);
+		filter.lowpass(freq, 1.91, design);
 		auto spectrum = getSpectrum(filter);
 		if (!isMonotonic(spectrum, -1)) {
 			writeSpectrum(spectrum, "fail-butterworth-spectrum");
@@ -98,7 +114,7 @@ void testButterworth(Test &&test, double freq) {
 		}
 	}
 	{
-		filter.highpass(freq, 1.91);
+		filter.highpass(freq, 1.91, design);
 		auto spectrum = getSpectrum(filter);
 		if (!isMonotonic(spectrum, 1)) {
 			writeSpectrum(spectrum, "fail-butterworth-spectrum");
@@ -106,8 +122,8 @@ void testButterworth(Test &&test, double freq) {
 		}
 	}
 	// Narrower bandwidth has a slight bump
-	{
-		filter.lowpass(freq, 1.89);
+	if (isBilinear || freq < 0.1){
+		filter.lowpass(freq, 1.89, design);
 		auto spectrum = getSpectrum(filter);
 		if (isMonotonic(spectrum, -1)) {
 			writeSpectrum(spectrum, "fail-butterworth-spectrum");
@@ -130,40 +146,77 @@ TEST("Butterworth filters", filters_butterworth) {
 		std::string n = std::to_string(f);
 		testButterworth<double>(test.prefix("double@" + n), f);
 		if (test.success) testButterworth<float>(test.prefix("float@" + n), f);
+		
+		signalsmith::filters::BiquadDesign design = signalsmith::filters::BiquadDesign::vicanek;
+		if (test.success) testButterworth<double>(test.prefix("double-vicanek@" + n), f, design);
+		if (test.success) testButterworth<float>(test.prefix("float-vicanek@" + n), f, design);
 	}
 }
 
 TEST("Butterworth plots", filters_butterworth_plots) {
-	auto drawDesign = [](signalsmith::filters::BiquadDesign design, std::string name) {
-		Plot2D plot(250, 150);
-		auto drawLine = [&](double freq) {
-			signalsmith::filters::BiquadStatic<double> filter;
-			filter.lowpass(freq, 1.9, design);
-			auto spectrum = getSpectrum(filter);
+	auto drawShape = [&](int shape, std::string name) {
+		Figure figure;
+		int plotCounter = 0;
+		auto drawDesign = [&](signalsmith::filters::BiquadDesign design, std::string designName) {
+			int plotIndex = plotCounter++;
+			int plotColumn = plotIndex, plotRow = 0;
+			auto &plotFocus = figure.cell(plotColumn, plotRow*2).plot(200, 50);
+			auto &plot = figure.cell(plotColumn, plotRow*2 + 1).plot(200, 150);
+			auto drawLine = [&](double freq) {
+				signalsmith::filters::BiquadStatic<double> filter;
+				if (shape == 0) {
+					filter.lowpass(freq, design);
+				} else if (shape == 1) {
+					filter.highpass(freq, design);
+				} else if (shape == 2) {
+					filter.bandpass(freq, 1.66, design != signalsmith::filters::BiquadDesign::bilinear);
+				} else {
+					filter.bandStop(freq);
+				}
+				auto spectrum = getSpectrum(filter, 1e-10, 1024);
 
-			auto &line = plot.line();
-			for (size_t i = 1; i < spectrum.size()/2; ++i) {
-				double f = i*1.0/spectrum.size();
-				line.add(f, ampToDb(std::abs(spectrum[i])));
+				auto &line = plot.line();
+				auto &lineFocus = plotFocus.line();
+				for (size_t i = 0; i < spectrum.size()/2; ++i) {
+					double f = std::max(i*1.0/spectrum.size(), 1e-6);
+					line.add(f, ampToDb(std::abs(spectrum[i])));
+					lineFocus.add(f, ampToDb(std::abs(spectrum[i])));
+				}
+			};
+			drawLine(0.001*std::sqrt(10));
+			drawLine(0.01);
+			drawLine(0.01*std::sqrt(10));
+			drawLine(0.1);
+			drawLine(0.1*std::sqrt(10));
+
+			// Draw top label as title
+			plotFocus.newX().flip().label(designName);
+			plot.y.linear(-75, 1).minors(0, -12, -24, -48, -72);
+			plot.x.range(std::log, 0.001, 0.5).minors(0.001, 0.01, 0.1, 0.5)
+				.minor(0.001*std::sqrt(10), "").minor(0.01*std::sqrt(10), "").minor(0.1*std::sqrt(10), "")
+				.label("freq");
+			plotFocus.y.linear(-6, 0).minor(-3, "").minors(0, -6);
+			plotFocus.x.range(std::log, 0.001, 0.5).minor(0.001, "").minor(0.01, "").minor(0.1, "").minor(0.5, "")
+				.minor(0.001*std::sqrt(10), "").minor(0.01*std::sqrt(10), "").minor(0.1*std::sqrt(10), "");
+
+			if (plotIndex == 0) {
+				plot.y.label("dB");
+				plotFocus.y.label("dB");
+			} else {
+				plot.y.blankLabels();
+				plotFocus.y.blankLabels();
 			}
-			return &line;
 		};
-		drawLine(0.001*std::sqrt(10));
-		drawLine(0.01);
-		drawLine(0.01*std::sqrt(10));
-		drawLine(0.1);
-		drawLine(0.1*std::sqrt(10));
-//		drawLine(0.25);
-
-		plot.y.linear(-75, 1).minor(-3, "").minors(0, -6, -12, -24, -48, -72).label("dB");
-		plot.x.range(std::log, 0.001, 0.5).minors(0.001, 0.01, 0.1, 0.5)
-			.minor(0.001*std::sqrt(10), "").minor(0.01*std::sqrt(10), "").minor(0.1*std::sqrt(10), "")
-			.label("freq");
-		plot.write("filters-lowpass-" + name + ".svg");
+		drawDesign(signalsmith::filters::BiquadDesign::bilinear, "bilinear");
+		drawDesign(signalsmith::filters::BiquadDesign::cookbook, "cookbook");
+		drawDesign(signalsmith::filters::BiquadDesign::oneSided, "oneSided");
+		drawDesign(signalsmith::filters::BiquadDesign::vicanek, "vicanek");
+		
+		figure.write("filters-" + name + ".svg");
 	};
-	drawDesign(signalsmith::filters::BiquadDesign::bilinear, "bilinear");
-	drawDesign(signalsmith::filters::BiquadDesign::cookbook, "cookbook");
-	drawDesign(signalsmith::filters::BiquadDesign::oneSided, "oneSided");
-	drawDesign(signalsmith::filters::BiquadDesign::vicanek, "vicanek");
+	drawShape(0, "lowpass");
+	drawShape(1, "highpass");
+	drawShape(2, "bandpass");
+	drawShape(3, "bandStop");
 	return test.pass();
 }

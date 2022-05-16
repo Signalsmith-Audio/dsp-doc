@@ -11,14 +11,14 @@ static double dbToAmp(double db) {
 }
 
 template<class Filter>
-Spectrum getSpectrum(Filter &filter, double impulseLimit=1e-10) {
+Spectrum getSpectrum(Filter &filter, double impulseLimit=1e-10, int minLength=256) {
 	filter.reset();
 	Spectrum impulse, spectrum;
 
 	// Size depends on impulse length, to guarantee sufficient frequency resolution
 	int sample = 0;
 	int belowLimitCounter = 0;
-	while (sample < 100 || belowLimitCounter <= sample*0.9 /*overshoot by 10x for padding */) {
+	while (sample < minLength || belowLimitCounter <= sample*0.9 /*overshoot by 10x for padding */) {
 		double v = filter((sample == 0) ? 1 : 0);
 		impulse.push_back(v);
 		auto mag = std::abs(v);
