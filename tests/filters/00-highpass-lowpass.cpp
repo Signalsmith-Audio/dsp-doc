@@ -198,7 +198,7 @@ TEST("Butterworth plots", filters_butterworth_plots) {
 			if (isPeak) {
 				plot.y.linear(-2, 14).minors(0, 6, 12);
 			} else {
-				plot.y.linear(-75, 1).minors(0, -12, -24, -48, -72);
+				plot.y.linear(-90, 1).minors(0, -12, -24, -48, -72);
 			}
 			plot.x.range(std::log, 0.001, 0.5).minors(0.001, 0.01, 0.1, 0.5)
 				.minor(0.001*std::sqrt(10), "").minor(0.01*std::sqrt(10), "").minor(0.1*std::sqrt(10), "")
