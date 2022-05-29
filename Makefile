@@ -1,12 +1,23 @@
 all: test
 
 .SILENT: test out/test dev-setup check-main-commit update-main-commit
+.PHONY: clean
 
 clean:
 	@# Tests and analysis
 	rm -rf out
 	@# Doxygen
 	rm -rf html
+
+# Compile C++ object files
+# Everything depends on the .h files in the parent directory
+out/%.cpp.o: %.cpp ../*.h
+	@echo "$$(tput setaf 3)$<$$(tput sgr0) -> $$(tput setaf 1)$@$$(tput sgr0)"
+	@mkdir -p $$(dirname "$@")
+	@g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
+ 		-Wpedantic -pedantic-errors \
+		-I "util" -I "../" \
+		-c $< -o $@
 
 ############## Testing ##############
 #
@@ -24,21 +35,20 @@ clean:
 # Used for plots and stuff
 export PYTHONPATH=$(shell cd util && pwd)
 
+TEST_CPP_FILES := $(shell find tests -iname "*.cpp" -not -path "*/_*/*" | sort)
+TEST_CPP_O_FILES := $(patsubst %, out/%.o, $(TEST_CPP_FILES))
 test: out/test
 	mkdir -p out/analysis
 	cd out/analysis && ../test
 	cd out/analysis && find ../../tests -iname \*.py -print0 | xargs -0 -n1 python
 
-out/test: $(shell find .. -iname "*.h") $(shell find tests -iname "*.cpp")
-	@TEST_CPP_FILES=$$(find tests -iname "*.cpp" -not -path "*/_*/*" | sort) ;\
-	echo "Building tests:" ;\
-	echo "$${TEST_CPP_FILES}" | sed 's/^/     /' ;\
-	mkdir -p out ;\
-	time g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
+out/test: out/util/test/main.cpp.o $(TEST_CPP_O_FILES)
+	@TEST_OPP_FILES=$$(find out/tests -iname "*.cpp.o" | sort) ;\
+	echo "Linking tests:" ;\
+	echo "$${TEST_OPP_FILES}" | sed 's/^/     /' ;\
+	g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
  		-Wpedantic -pedantic-errors \
-		"util/test/main.cpp" -I "util" \
-		-I tests/ $${TEST_CPP_FILES} \
-		-I "../" -I "../util/" \
+		out/util/test/main.cpp.o $${TEST_OPP_FILES} \
 		-o out/test
 
 ## Individual tests
@@ -48,19 +58,15 @@ test-% : out/test-%
 	cd out/analysis && ../test-$*
 	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python
 
-python-%:
-	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python
-
-out/test-%: $(shell find .. -iname "*.h") $(shell find tests/$* -iname "*.cpp")
-	TEST_CPP_FILES=$$(find tests/$* -iname "*.cpp" -not -path "*/_*/*" | sort) ;\
-	echo "Building tests:" ;\
-	echo "$${TEST_CPP_FILES}" | sed 's/^/     /' ;\
-	mkdir -p out ;\
+out/test-%: out/util/test/main.cpp.o
+	@# A slight hack: we find the .cpp files, get a list of .o files, and call "make" again
+	@TEST_OPP_FILES=$$(find "tests/$*" -iname "*.cpp" | sort | sed "s/\(.*\)/out\/\1.o/") ;\
+	$(MAKE) $$TEST_OPP_FILES ;\
+	echo "Linking tests:" ;\
+	echo "$${TEST_OPP_FILES}" | sed 's/^/     /' ;\
 	g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
  		-Wpedantic -pedantic-errors \
-		"util/test/main.cpp" -I "util" \
-		-I tests/ $${TEST_CPP_FILES} \
-		-I "../" -I "../util/" \
+		out/util/test/main.cpp.o $${TEST_OPP_FILES} \
 		-o out/test-$*
 
 ## Benchmarks
@@ -73,16 +79,15 @@ benchmark-% : out/benchmark-%
 benchmarkpy-%:
 	cd out/benchmarks && find ../../benchmarks/$* -iname \*.py -print0 | xargs -0 -n1 python
 
-out/benchmark-%: $(shell find .. -iname "*.h") $(shell find benchmarks/$* -iname "*.cpp")
-	TEST_CPP_FILES=$$(find benchmarks/$* -iname "*.cpp" -not -path "*/_*/*" | sort) ;\
-	echo "Building benchmarks:" ;\
-	echo "$${TEST_CPP_FILES}" | sed 's/^/     /' ;\
-	mkdir -p out ;\
+
+out/benchmark-%: out/util/test/main.opp
+	@TEST_OPP_FILES=$$(find "benchmarks/$*" -iname "*.cpp" | sort | sed "s/\(.*\)/out\/\1.o/") ;\
+	make $$TEST_OPP_FILES ;\
+	echo "Linking tests:" ;\
+	echo "$${TEST_OPP_FILES}" | sed 's/^/     /' ;\
 	g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
  		-Wpedantic -pedantic-errors \
-		"util/test/main.cpp" -I "util" \
-		-I tests/ $${TEST_CPP_FILES} \
-		-I "../" -I "../util/" \
+		out/util/test/main.cpp.o $${TEST_OPP_FILES} \
 		-o out/benchmark-$*
 
 ##
