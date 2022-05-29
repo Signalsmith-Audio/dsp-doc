@@ -24,3 +24,10 @@ do
 	fi
 done
 git checkout "$current"
+make clean test doxygen
+
+for tag in $(git tag -l "v*" --sort=version:refname)
+do
+	cp extra-style.js "$tag/"
+done
+cp extra-style.js html/
