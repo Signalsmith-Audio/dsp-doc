@@ -2,8 +2,10 @@
 **/*.pyc
 out/
 html/
+v*/
 
 # Personal dev setup
 util/article
 tests/plot.h
 Doxyfile-local
+version-notes.txt
