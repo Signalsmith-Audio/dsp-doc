@@ -20,9 +20,9 @@ matplotlib.rcParams['mathtext.fontset'] = 'stixsans'
 matplotlib.rcParams['font.size'] = 12
 
 rgb = [
-	[0, 0, 0.9],
+	[0, 0.45, 0.9],
 	[0.8, 0, 0],
-	[0, 0.8, 0],
+	[0, 0.7, 0],
 	[0.5, 0.4, 0],
 	[0.9, 0.6, 0],
 	[0.8, 0, 0.8],
