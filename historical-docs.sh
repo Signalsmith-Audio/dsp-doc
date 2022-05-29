@@ -24,7 +24,11 @@ do
 	fi
 done
 git checkout "$current"
-make clean test doxygen
+
+if [ ! -d "$tag" ]
+then
+	make clean test doxygen
+fi
 
 for tag in $(git tag -l "v*" --sort=version:refname)
 do
