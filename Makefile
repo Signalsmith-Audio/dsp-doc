@@ -1,9 +1,11 @@
 all: test
 
+.SILENT: test out/test dev-setup check-main-commit update-main-commit
+
 clean:
-	# Tests and analysis
+	@# Tests and analysis
 	rm -rf out
-	# Doxygen
+	@# Doxygen
 	rm -rf html
 
 ############## Testing ##############
@@ -86,7 +88,7 @@ out/benchmark-%: $(shell find .. -iname "*.h") $(shell find benchmarks/$* -iname
 ##
 
 check-main-commit:
-	@CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
+	CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
 		KNOWN_COMMIT=$$(cat dsp-commit.txt) ; \
 		COMMON_ANCESTOR=$$(cd .. && git merge-base "$$KNOWN_COMMIT" "$$CURRENT_COMMIT") ; \
 		if [ "$$KNOWN_COMMIT" != "$$CURRENT_COMMIT" ]; then \
@@ -98,7 +100,7 @@ check-main-commit:
 
 # Forces you to assert that you've tested all your changes
 update-main-commit:
-	@CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
+	CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
 		echo "$$CURRENT_COMMIT" > dsp-commit.txt ; \
 		git commit dsp-commit.txt -m "Update main library commit" -e
 
@@ -109,6 +111,24 @@ check-git: check-main-commit
 ############## Docs and releases ##############
 
 # These rely on specific things in my dev setup, but you probably don't need to run them yourself
+
+dev-setup:
+	echo "Copying Git hooks (.githooks)"
+	cp .githooks/* .git/hooks
+
+	# From the parent directory, we can run "git both [commands]".
+	# The alias starting with "!" means it's handed to bash.  We use "$@" (escaped with $$ because this is a Makefile) to run the commands twice, and end with "#" so that the actual commands are ignored
+	echo "Adding \"git both [...]\" alias to current directory"
+	git config alias.both "!(cd ..;tput bold;tput smul;tput setaf 4;echo \"============ ./ ============\";tput sgr0; git \"\$$@\" && (cd doc;tput bold;tput smul;tput setaf 3;echo \"============ doc/ ============\";tput sgr0; git \"\$$@\")); #"
+	echo "Adding \"git both [...]\" alias to parent directory"
+	cd .. && git config alias.both "!(tput bold;tput smul;tput setaf 4;echo \"============ ./ ============\";tput sgr0; git \"\$$@\" && (cd doc;tput bold;tput smul;tput setaf 3;echo \"============ doc/ ============\";tput sgr0; git \"\$$@\")); #"
+
+	# Add "graph" and "graph-all" aliases
+	echo "Adding \"git graph\" and \"git graph-all\" to both directories"
+	git config alias.graph "log --oneline --graph"
+	git config alias.graph-all "log --graph --oneline --all"
+	cd .. && git config alias.graph "log --oneline --graph"
+	cd .. && git config alias.graph-all "log --graph --oneline --all"
 
 release: check-git clean all doxygen publish publish-git
 

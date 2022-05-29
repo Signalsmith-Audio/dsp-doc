@@ -1,0 +1,9 @@
+MAIN_BRANCH=$(cd .. && git rev-parse --abbrev-ref HEAD)
+DEV_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$MAIN_BRANCH" = "$DEV_BRANCH" ]; then
+	echo "Branch names match - updating commit reference"
+	CURRENT_COMMIT=$(cd .. && git log --format="%H" -n 1)
+	echo "$CURRENT_COMMIT" > dsp-commit.txt
+	git add dsp-commit.txt
+fi

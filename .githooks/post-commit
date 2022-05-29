@@ -1,0 +1,4 @@
+#git diff-index --quiet HEAD dsp-commit.txt
+if !(git diff-index --quiet HEAD dsp-commit.txt); then
+	git commit dsp-commit.txt --amend --no-edit --no-verify
+fi
