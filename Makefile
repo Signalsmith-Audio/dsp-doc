@@ -89,8 +89,8 @@ out/benchmark-%: out/util/test/main.opp
 # These rely on specific things in my dev setup, but you probably don't need to run them yourself
 
 dev-setup:
-	echo "Copying Git hooks (.githooks)"
-	cp .githooks/* .git/hooks
+	#echo "Copying Git hooks (.githooks)"
+	#cp .githooks/* .git/hooks
 
 	echo "Adding \"git graph\" and \"git graph-all\"
 	git config alias.graph "log --oneline --graph"
