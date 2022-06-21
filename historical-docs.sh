@@ -2,7 +2,7 @@ printf "" > version-notes.txt
 
 current=$(git symbolic-ref --short HEAD)
 
-for tag in $(git tag -l "dev-v*" --sort=version:refname)
+for tag in $(git tag -l "dev-v*" --sort=-version:refname)
 do
 	tag=`echo "$tag" | sed -e "s/^dev-//"`
 	printf "$tag: " >> version-notes.txt
@@ -23,11 +23,15 @@ do
 done
 git checkout "$current"
 
-for tag in $(git tag -l "dev-v*" --sort=version:refname)
+for tag in $(git tag -l "dev-v*" --sort=-version:refname)
 do
 	tag=`echo "$tag" | sed -e "s/^dev-//"`
 	cp extra-style.js "$tag/"
 done
 
-make clean test doxygen
-cp extra-style.js html/
+if make clean test doxygen
+then
+	cp extra-style.js html/
+else
+	exit 1
+fi

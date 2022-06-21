@@ -2,7 +2,7 @@
 
 if [ -z "$1" -o -z "$2" ]
 then
-	echo "Usage:\n\tgit sub-branch <sub-dir> <branch> <?message-prompt>"
+	echo "Usage:\n\tgit sub-branch <sub-dir> <branch>"
 	exit 1;
 fi
 

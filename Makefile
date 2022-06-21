@@ -101,7 +101,7 @@ dev-setup:
 historical-docs:
 	./historical-docs.sh
 
-release: all historical-docs publish publish-git
+release: historical-docs publish publish-git
 
 # bump-patch, bump-minor, bump-major
 bump-%: clean all
