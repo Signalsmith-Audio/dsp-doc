@@ -1,6 +1,6 @@
 all: test
 
-.SILENT: test out/test dev-setup check-main-commit update-main-commit
+.SILENT: test out/test dev-setup
 .PHONY: clean
 
 clean:
@@ -140,5 +140,6 @@ publish-git:
 	git checkout dev && publish-signalsmith-git /code/dsp-doc.git ../dsp/
 	# GitHub
 	git push github
+	git push github main:main
 	git push --tags github
 	git push release main:main
