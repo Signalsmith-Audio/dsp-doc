@@ -6,7 +6,7 @@ versionDefines = [
 versionStringDefine = "#define SIGNALSMITH_DSP_VERSION_STRING \"%s\""
 version = [0, 0, 0]
 
-with open("../common.h") as commonH:
+with open("dsp/common.h") as commonH:
 	for line in commonH:
 		for i in range(3):
 			if line.startswith(versionDefines[i]):
@@ -34,13 +34,13 @@ oldVersion = ".".join([str(x) for x in startVersion])
 newVersion = ".".join([str(x) for x in version])
 
 code = None
-with open("../common.h") as commonH:
+with open("dsp/common.h") as commonH:
 	code = commonH.read()
 if code != None:
 	for i in range(3):
 		code = code.replace(versionDefines[i] + str(startVersion[i]), versionDefines[i] + str(version[i]))
 	code = code.replace(versionStringDefine%(oldVersion,), versionStringDefine%(newVersion,))
-	with open("../common.h", 'w') as commonH:
+	with open("dsp/common.h", 'w') as commonH:
 		commonH.write(code)
 		
 text = ""
@@ -51,10 +51,10 @@ with open("Doxyfile", 'w') as doxyfile:
 	doxyfile.write(text)
 
 text = ""
-with open("../README.md") as readme:
+with open("dsp/README.md") as readme:
 	text = readme.read()
 text = text.replace("SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(startVersion), "SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(version))
-with open("../README.md", 'w') as readme:
+with open("dsp/README.md", 'w') as readme:
 	readme.write(text)
 
 code = ""

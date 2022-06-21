@@ -10,18 +10,17 @@ clean:
 	rm -rf html
 
 CPP_BASE := .
-INCLUDE_DIR := dsp
 ALL_H := Makefile $(shell find $(CPP_BASE) -iname \*.h)
+GCC := g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
+ 		-Wpedantic -pedantic-errors \
+		-I "util" -I dsp/
 
 # Compile C++ object files
 # Everything depends on the .h files in the parent directory
 out/%.cpp.o: %.cpp $(ALL_H)
 	@echo "$$(tput setaf 3)$<$$(tput sgr0) -> $$(tput setaf 1)$@$$(tput sgr0)"
 	@mkdir -p $$(dirname "$@")
-	@g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
- 		-Wpedantic -pedantic-errors \
-		-I "util" -I $(INCLUDE_DIR) \
-		-c $< -o $@
+	@$(GCC) -c $< -o $@
 
 ############## Testing ##############
 #
@@ -50,10 +49,7 @@ out/test: out/util/test/main.cpp.o $(TEST_CPP_O_FILES)
 	@TEST_OPP_FILES=$$(find out/tests -iname "*.cpp.o" | sort) ;\
 	echo "Linking tests:" ;\
 	echo "$${TEST_OPP_FILES}" | sed 's/^/     /' ;\
-	g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
- 		-Wpedantic -pedantic-errors \
-		out/util/test/main.cpp.o $${TEST_OPP_FILES} \
-		-o out/test
+	$(GCC) out/util/test/main.cpp.o $${TEST_OPP_FILES} -o out/test
 
 ## Individual tests
 
@@ -68,10 +64,7 @@ out/test-%: out/util/test/main.cpp.o
 	$(MAKE) $$TEST_OPP_FILES ;\
 	echo "Linking tests:" ;\
 	echo "$${TEST_OPP_FILES}" | sed 's/^/     /' ;\
-	g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
- 		-Wpedantic -pedantic-errors \
-		out/util/test/main.cpp.o $${TEST_OPP_FILES} \
-		-o out/test-$*
+	$(GCC) out/util/test/main.cpp.o $${TEST_OPP_FILES} -o out/test-$*
 
 ## Benchmarks
 
@@ -89,10 +82,7 @@ out/benchmark-%: out/util/test/main.opp
 	make $$TEST_OPP_FILES ;\
 	echo "Linking tests:" ;\
 	echo "$${TEST_OPP_FILES}" | sed 's/^/     /' ;\
-	g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
- 		-Wpedantic -pedantic-errors \
-		out/util/test/main.cpp.o $${TEST_OPP_FILES} \
-		-o out/benchmark-$*
+	$(GCC) out/util/test/main.cpp.o $${TEST_OPP_FILES} -o out/benchmark-$*
 
 ############## Docs and releases ##############
 
@@ -102,29 +92,24 @@ dev-setup:
 	echo "Copying Git hooks (.githooks)"
 	cp .githooks/* .git/hooks
 
-	# From the parent directory, we can run "git both [commands]".
-	# The alias starting with "!" means it's handed to bash.  We use "$@" (escaped with $$ because this is a Makefile) to run the commands twice, and end with "#" so that the actual commands are ignored
-	#echo "Adding \"git both [...]\" alias to current directory"
-	#git config alias.both "!(cd ..;tput bold;tput smul;tput setaf 4;echo \"============ ./ ============\";tput sgr0; git \"\$$@\" && (cd doc;tput bold;tput smul;tput setaf 3;echo \"============ doc/ ============\";tput sgr0; git \"\$$@\")); #"
-	#echo "Adding \"git both [...]\" alias to parent directory"
-	#cd .. && git config alias.both "!(tput bold;tput smul;tput setaf 4;echo \"============ ./ ============\";tput sgr0; git \"\$$@\" && (cd doc;tput bold;tput smul;tput setaf 3;echo \"============ doc/ ============\";tput sgr0; git \"\$$@\")); #"
-
-	# Add "graph" and "graph-all" aliases
-	echo "Adding \"git graph\" and \"git graph-all\" to both directories"
+	echo "Adding \"git graph\" and \"git graph-all\"
 	git config alias.graph "log --oneline --graph"
 	git config alias.graph-all "log --graph --oneline --all"
 	cd .. && git config alias.graph "log --oneline --graph"
 	cd .. && git config alias.graph-all "log --graph --oneline --all"
 
-release: clean all doxygen publish publish-git
+historical-docs:
+	./historical-docs.sh
+
+release: all historical-docs publish publish-git
 
 # bump-patch, bump-minor, bump-major
 bump-%: clean all
 	@VERSION=$$(python version.py bump-$*) ; \
-		pushd .. && git commit -a -m "Release v$$VERSION" -e && git tag "v$$VERSION" ; \
-		CURRENT_COMMIT=$$(git log --format="%H" -n 1); \
-		popd && echo "$$CURRENT_COMMIT" > dsp-commit.txt ; \
-		git commit -a -m "Release v$$VERSION" -e && git tag "v$$VERSION" ;
+		git commit -a -m "Release v$$VERSION" -e && \
+		git tag "dev-v$$VERSION" && \
+		./git-sub-branch dsp main "Release v$$VERSION" && \
+		git tag "v$$VERSION" main ;
 	
 doxygen:
 	doxygen Doxyfile-local

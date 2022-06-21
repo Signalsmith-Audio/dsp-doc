@@ -2,8 +2,9 @@ printf "" > version-notes.txt
 
 current=$(git symbolic-ref --short HEAD)
 
-for tag in $(git tag -l "v*" --sort=version:refname)
+for tag in $(git tag -l "dev-v*" --sort=version:refname)
 do
+	tag=`echo "$tag" | sed -e "s/^dev-//"`
 	printf "$tag: " >> version-notes.txt
 	git log -n 1 --format="[%cs] %s" "$tag" -- >> version-notes.txt
 	git log -n 1 --format="%b" "$tag" -- | sed  's/^/     /' >> version-notes.txt
@@ -13,10 +14,7 @@ do
 		echo "Already exists: $tag"
 	else
 		echo "Tag: $tag"
-		git -c advice.detachedHead=false checkout "$tag"
-		pushd ..
-		git -c advice.detachedHead=false checkout "$tag";
-		popd
+		git -c advice.detachedHead=false checkout "dev-$tag"
 
 		make clean test doxygen
 
@@ -25,13 +23,11 @@ do
 done
 git checkout "$current"
 
-if [ ! -d "$tag" ]
-then
-	make clean test doxygen
-fi
-
-for tag in $(git tag -l "v*" --sort=version:refname)
+for tag in $(git tag -l "dev-v*" --sort=version:refname)
 do
+	tag=`echo "$tag" | sed -e "s/^dev-//"`
 	cp extra-style.js "$tag/"
 done
+
+make clean test doxygen
 cp extra-style.js html/
