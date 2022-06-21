@@ -14,14 +14,14 @@ tree=`git cat-file commit HEAD | grep '^tree ' | awk '{print \$2}'`
 for dir in `echo "$1" | tr "/" "\n"`
 do
 	sumDir="$sumDir/$dir"
-	tree=`git cat-file -p "$tree" | grep "\t${dir}" | awk '{print $3}'`
+	tree=`git cat-file -p "$tree" | grep "\t${dir}$" | awk '{print $3}'`
 	if [ -z "$tree" ]
 	then
 		echo "Could not find sub-dir: ${sumDir}"
 		exit 1
 	fi
 
-#	echo "${tree}\t$sumDir"
+	#echo "${tree}\t$sumDir"
 done
 
 if (git rev-parse --verify "$2" &> /dev/null)
@@ -29,8 +29,8 @@ then
 	echo "\n\n# new branch: $2\n" > .git/.SUB_BRANCH_MSG
 	$EDITOR .git/.SUB_BRANCH_MSG
 	commitMsg=`cat .git/.SUB_BRANCH_MSG | sed '/^#/d'`
-
 	newCommit=`cat .git/.SUB_BRANCH_MSG | git commit-tree "${tree}" -p "$2" -m "$commitMsg"`
+	#echo "new commit: $newCommit"
 	git branch -f "$2" "$newCommit"
 else
 	echo "\n\n# new branch: $2\n" > .git/.SUB_BRANCH_MSG
@@ -38,5 +38,6 @@ else
 	commitMsg=`cat .git/.SUB_BRANCH_MSG | sed '/^#/d'`
 
 	newCommit=`cat .git/.SUB_BRANCH_MSG | git commit-tree "${tree}" -m "$commitMsg"`
+	#echo "new commit: $newCommit"
 	git branch -f "$2" "$newCommit"
 fi

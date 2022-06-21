@@ -4,7 +4,6 @@ PROJECT_BRIEF = Useful C++ classes/templates for audio effects
 
 OUTPUT_DIRECTORY = .
 
-INPUT = ../
-EXCLUDE = ./
+INPUT = dsp/
 
 IMAGE_PATH = manual/diagrams out/analysis

@@ -9,14 +9,18 @@ clean:
 	@# Doxygen
 	rm -rf html
 
+CPP_BASE := .
+INCLUDE_DIR := dsp
+ALL_H := Makefile $(shell find $(CPP_BASE) -iname \*.h)
+
 # Compile C++ object files
 # Everything depends on the .h files in the parent directory
-out/%.cpp.o: %.cpp ../*.h
+out/%.cpp.o: %.cpp $(ALL_H)
 	@echo "$$(tput setaf 3)$<$$(tput sgr0) -> $$(tput setaf 1)$@$$(tput sgr0)"
 	@mkdir -p $$(dirname "$@")
 	@g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
  		-Wpedantic -pedantic-errors \
-		-I "util" -I "../" \
+		-I "util" -I $(INCLUDE_DIR) \
 		-c $< -o $@
 
 ############## Testing ##############
@@ -90,29 +94,6 @@ out/benchmark-%: out/util/test/main.opp
 		out/util/test/main.cpp.o $${TEST_OPP_FILES} \
 		-o out/benchmark-$*
 
-##
-
-check-main-commit:
-	CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
-		KNOWN_COMMIT=$$(cat dsp-commit.txt) ; \
-		COMMON_ANCESTOR=$$(cd .. && git merge-base "$$KNOWN_COMMIT" "$$CURRENT_COMMIT") ; \
-		if [ "$$KNOWN_COMMIT" != "$$CURRENT_COMMIT" ]; then \
-			echo "\nUntested commits (make update-main-commit to change):"; \
-			cd .. && git log --graph --oneline "$$KNOWN_COMMIT...$$CURRENT_COMMIT"; \
-			echo; \
-			exit 1; \
-		fi;
-
-# Forces you to assert that you've tested all your changes
-update-main-commit:
-	CURRENT_COMMIT=$$(cd .. && git log --format="%H" -n 1) ; \
-		echo "$$CURRENT_COMMIT" > dsp-commit.txt ; \
-		git commit dsp-commit.txt -m "Update main library commit" -e
-
-check-git: check-main-commit
-	git diff-index --quiet HEAD || (git status && exit 1)
-	cd .. && git diff-index --quiet HEAD || (git status && exit 1)
-
 ############## Docs and releases ##############
 
 # These rely on specific things in my dev setup, but you probably don't need to run them yourself
@@ -123,10 +104,10 @@ dev-setup:
 
 	# From the parent directory, we can run "git both [commands]".
 	# The alias starting with "!" means it's handed to bash.  We use "$@" (escaped with $$ because this is a Makefile) to run the commands twice, and end with "#" so that the actual commands are ignored
-	echo "Adding \"git both [...]\" alias to current directory"
-	git config alias.both "!(cd ..;tput bold;tput smul;tput setaf 4;echo \"============ ./ ============\";tput sgr0; git \"\$$@\" && (cd doc;tput bold;tput smul;tput setaf 3;echo \"============ doc/ ============\";tput sgr0; git \"\$$@\")); #"
-	echo "Adding \"git both [...]\" alias to parent directory"
-	cd .. && git config alias.both "!(tput bold;tput smul;tput setaf 4;echo \"============ ./ ============\";tput sgr0; git \"\$$@\" && (cd doc;tput bold;tput smul;tput setaf 3;echo \"============ doc/ ============\";tput sgr0; git \"\$$@\")); #"
+	#echo "Adding \"git both [...]\" alias to current directory"
+	#git config alias.both "!(cd ..;tput bold;tput smul;tput setaf 4;echo \"============ ./ ============\";tput sgr0; git \"\$$@\" && (cd doc;tput bold;tput smul;tput setaf 3;echo \"============ doc/ ============\";tput sgr0; git \"\$$@\")); #"
+	#echo "Adding \"git both [...]\" alias to parent directory"
+	#cd .. && git config alias.both "!(tput bold;tput smul;tput setaf 4;echo \"============ ./ ============\";tput sgr0; git \"\$$@\" && (cd doc;tput bold;tput smul;tput setaf 3;echo \"============ doc/ ============\";tput sgr0; git \"\$$@\")); #"
 
 	# Add "graph" and "graph-all" aliases
 	echo "Adding \"git graph\" and \"git graph-all\" to both directories"
@@ -135,7 +116,7 @@ dev-setup:
 	cd .. && git config alias.graph "log --oneline --graph"
 	cd .. && git config alias.graph-all "log --graph --oneline --all"
 
-release: check-git clean all doxygen publish publish-git
+release: clean all doxygen publish publish-git
 
 # bump-patch, bump-minor, bump-major
 bump-%: clean all
@@ -155,10 +136,9 @@ publish:
 
 publish-git:
 	# Self-hosted
-	cd .. && publish-signalsmith-git /code/dsp.git
-	publish-signalsmith-git /code/dsp-doc.git ../dsp/
+	git checkout main && publish-signalsmith-git /code/dsp.git
+	git checkout dev && publish-signalsmith-git /code/dsp-doc.git ../dsp/
 	# GitHub
-	cd .. && git push github
-	cd .. && git push --tags github
 	git push github
 	git push --tags github
+	git push release main:main
