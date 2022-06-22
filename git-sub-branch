@@ -9,30 +9,32 @@ fi
 sumDir="."
 tree=`git cat-file commit HEAD | grep '^tree ' | awk '{print \$2}'`
 
-#echo "${tree}\t$sumDir"
-
+# Find the tree ID for the sub-directory
 for dir in `echo "$1" | tr "/" "\n"`
 do
 	sumDir="$sumDir/$dir"
-	tree=`git cat-file -p "$tree" | grep "\t${dir}$" | awk '{print $3}'`
-	if [ -z "$tree" ]
+	if [ ! -z "$dir" ]
 	then
-		echo "Could not find sub-dir: ${sumDir}"
-		exit 1
+		tree=`git cat-file -p "$tree" | grep "\t${dir}$" | awk '{print $3}'`
+		if [ -z "$tree" ]
+		then
+			echo "Could not find sub-dir: ${sumDir}"
+			exit 1
+		fi
 	fi
-
-	#echo "${tree}\t$sumDir"
 done
 
+# Copy latest commit message
 git log -n 1 --format="%B" > .git/.SUB_BRANCH_MSG
+
 if (git rev-parse --verify "$2" &> /dev/null)
 then
-	echo "\n\n# new branch: $2\n" >> .git/.SUB_BRANCH_MSG
+	echo "\n\n# adding to branch: $2\n" >> .git/.SUB_BRANCH_MSG
 	$EDITOR .git/.SUB_BRANCH_MSG
 	commitMsg=`cat .git/.SUB_BRANCH_MSG | sed '/^#/d'`
 	newCommit=`cat .git/.SUB_BRANCH_MSG | git commit-tree "${tree}" -p "$2" -m "$commitMsg"`
 else
-	echo "\n\n# adding to branch: $2\n" >> .git/.SUB_BRANCH_MSG
+	echo "\n\n# new branch: $2\n" >> .git/.SUB_BRANCH_MSG
 	$EDITOR .git/.SUB_BRANCH_MSG
 	commitMsg=`cat .git/.SUB_BRANCH_MSG | sed '/^#/d'`
 	newCommit=`cat .git/.SUB_BRANCH_MSG | git commit-tree "${tree}" -m "$commitMsg"`
