@@ -6,6 +6,7 @@ versionDefines = [
 versionStringDefine = "#define SIGNALSMITH_DSP_VERSION_STRING \"%s\""
 version = [0, 0, 0]
 
+# Read existing version from `#define`s
 with open("dsp/common.h") as commonH:
 	for line in commonH:
 		for i in range(3):
@@ -32,36 +33,26 @@ if len(sys.argv) > 1:
 		
 oldVersion = ".".join([str(x) for x in startVersion])
 newVersion = ".".join([str(x) for x in version])
-
-code = None
-with open("dsp/common.h") as commonH:
-	code = commonH.read()
-if code != None:
-	for i in range(3):
-		code = code.replace(versionDefines[i] + str(startVersion[i]), versionDefines[i] + str(version[i]))
-	code = code.replace(versionStringDefine%(oldVersion,), versionStringDefine%(newVersion,))
-	with open("dsp/common.h", 'w') as commonH:
-		commonH.write(code)
 		
-text = ""
-with open("Doxyfile") as doxyfile:
-	text = doxyfile.read()
-text = text.replace("PROJECT_NUMBER = " + oldVersion, "PROJECT_NUMBER = " + newVersion)
-with open("Doxyfile", 'w') as doxyfile:
-	doxyfile.write(text)
+def fileReplace(filename, fromText, toText):
+	text = ""
+	with open(filename) as textfile:
+		text = textfile.read()
+	if len(text) == 0:
+		return
+	text = text.replace(fromText, toText)
+	with open(filename, 'w') as textfile:
+		textfile.write(text)
 
-text = ""
-with open("dsp/README.md") as readme:
-	text = readme.read()
-text = text.replace("SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(startVersion), "SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(version))
-with open("dsp/README.md", 'w') as readme:
-	readme.write(text)
-
-code = ""
-with open("tests/common/version.cpp") as testFile:
-	code = testFile.read()
-code = code.replace("SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(startVersion), "SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(version))
-with open("tests/common/version.cpp", 'w') as testFile:
-	testFile.write(code)
+for i in range(3):
+	fileReplace("dsp/common.h", versionDefines[i] + str(startVersion[i]), versionDefines[i] + str(version[i]))
+fileReplace("dsp/common.h", versionStringDefine%oldVersion, versionStringDefine%newVersion)
+fileReplace("Doxyfile", "PROJECT_NUMBER = " + oldVersion, "PROJECT_NUMBER = " + newVersion)
+fileReplace("dsp/README.md",
+	"SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(startVersion),
+	"SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(version))
+fileReplace("tests/common/version.cpp",
+	"SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(startVersion),
+	"SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(version))
 
 print(newVersion)

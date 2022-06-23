@@ -161,8 +161,8 @@ TEST("Butterworth plots", filters_butterworth_plots) {
 		auto drawDesign = [&](signalsmith::filters::BiquadDesign design, std::string designName) {
 			int plotColumn = plotCounter++;
 			int plotRow = 0;
-			auto &plot = figure.cell(plotColumn, plotRow + 1).plot(200, isPeak ? 100 : 150);
-			auto &plotFocus = isPeak ? plot : figure.cell(plotColumn, plotRow).plot(200, 50);
+			auto &plot = figure(plotColumn, plotRow + 1).plot(200, isPeak ? 100 : 150);
+			auto &plotFocus = isPeak ? plot : figure(plotColumn, plotRow).plot(200, 50);
 			auto drawLine = [&](double freq) {
 				signalsmith::filters::BiquadStatic<double> filter;
 				if (shape == 0) {

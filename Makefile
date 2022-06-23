@@ -108,7 +108,7 @@ bump-%: clean all
 	@VERSION=$$(python version.py bump-$*) ; \
 		git commit -a -m "Release v$$VERSION" -e && \
 		git tag "dev-v$$VERSION" && \
-		./git-sub-branch dsp main "Release v$$VERSION" && \
+		./git-sub-branch dsp main && \
 		git tag "v$$VERSION" main ;
 	
 doxygen:

@@ -25,7 +25,12 @@ TEST("Cubic segments (example)", example) {
 	points.emplace_back(5, 2);
 	points.emplace_back(6, 2.25);
 	points.emplace_back(6.5, 1.5);
-	
+
+	Plot2D plot(380, 160);
+	plot.x.minor(2.5, "repeated point").flip();
+	plot.x.minor(4, "jump");
+	plot.y.blank();
+
 	Curve curveSmooth, curveMonotonic, curveLinear;
 	for (auto &p : points) {
 		curveSmooth.add(p.x, p.y);
@@ -37,25 +42,30 @@ TEST("Cubic segments (example)", example) {
 	curveMonotonic.update(true);
 	curveLinear.update();
 	
-	CsvWriter csv("cubic-segments-example");
-	csv.line("x", "smooth", "monotonic", "linear");
-	
-	Plot2D plot(380, 160);
+	auto &pointLine = plot.line(3);
+	plot.styleCounter = 0;
 	auto &smoothLine = plot.line(), &monotonicLine = plot.line(), &linearLine = plot.line();
 	
 	for (double x = -1; x < 7.5; x += 0.01) {
-		csv.line(x, curveSmooth(x), curveMonotonic(x), curveLinear(x));
 		smoothLine.add(x, curveSmooth(x));
 		monotonicLine.add(x, curveMonotonic(x));
 		linearLine.add(x, curveLinear(x));
 	}
-	plot.x.blank();
-	plot.y.blank();
+	for (size_t i = 0; i < points.size(); ++i) {
+		auto &p = points[i];
+		if (i < points.size() - 1 && p.x == points[i + 1].x && p.y == points[i + 1].y) {
+			pointLine.marker(p.x, p.y, 1);
+			++i;
+		} else {
+			pointLine.marker(p.x, p.y, 0);
+		}
+	}
+	
 	plot.legend(-0.3, 0.8)
 		.line(smoothLine, "smooth")
 		.line(monotonicLine, "monotonic")
 		.line(linearLine.styleIndex, "linear");
-	plot.write("cubic-segments-example-cpp.svg");
+	plot.write("cubic-segments-example.svg");
 	
 	return test.pass();
 }
