@@ -145,6 +145,8 @@ public:
 	static void testbody_##uniqueName (Test &TEST_VAR_NAME)
 #define TEST_ASSERT(expr) \
 	if (!(expr)) {return TEST_VAR_NAME.fail(#expr " (" __FILE__ ":" + std::to_string(__LINE__) + ")");}
+#define TEST_APPROX(expr1, expr2, accuracy) \
+	if (!(std::abs((expr1) - (expr2)) < accuracy)) {TEST_VAR_NAME.log(expr1); TEST_VAR_NAME.log(expr2); return TEST_VAR_NAME.fail("do not match (" __FILE__ ":" + std::to_string(__LINE__) + ")");}
 
 #define FAIL(reason) TEST_VAR_NAME.fail(reason)
 

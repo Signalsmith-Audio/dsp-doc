@@ -3,10 +3,10 @@
 
 using Spectrum = std::vector<std::complex<double>>;
 
-static double ampToDb(double amp) {
+static inline double ampToDb(double amp) {
 	return 20*std::log10(std::max(amp, 1e-100));
 }
-static double dbToAmp(double db) {
+static inline double dbToAmp(double db) {
 	return std::pow(10, db*0.05);
 }
 
@@ -43,7 +43,7 @@ Spectrum getSpectrum(Filter &filter, double impulseLimit=1e-10, int minLength=25
 	return spectrum;
 }
 
-static double interpSpectrum(Spectrum spectrum, double freq, int roundDirection = 0) {
+static inline double interpSpectrum(Spectrum spectrum, double freq, int roundDirection = 0) {
 	double index = freq*spectrum.size();
 	int intFreqLow = index;
 	int intFreqHigh = intFreqLow + 1;
@@ -60,7 +60,7 @@ static double interpSpectrum(Spectrum spectrum, double freq, int roundDirection 
 	return std::sqrt(energyLow + (energyHigh - energyLow)*ratio);
 }
 
-static void writeSpectrum(Spectrum spectrum, std::string name) {
+static inline void writeSpectrum(Spectrum spectrum, std::string name) {
 	CsvWriter csv(name);
 	csv.line("freq", "dB", "phase", "group delay");
 
@@ -85,7 +85,7 @@ static void writeSpectrum(Spectrum spectrum, std::string name) {
 	}
 }
 
-static bool isMonotonic(const Spectrum &spectrum, double from=0, double to=0.5, double thresholdDb=0.000001) {
+static inline bool isMonotonic(const Spectrum &spectrum, double from=0, double to=0.5, double thresholdDb=0.000001) {
 	int direction = (from < to) ? 1 : -1;
 	if (std::abs(from) >= 1) {
 		direction = from;

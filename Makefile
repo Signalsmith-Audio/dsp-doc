@@ -58,7 +58,7 @@ test-% : out/test-%
 	cd out/analysis && ../test-$*
 	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python
 
-out/test-%: out/util/test/main.cpp.o
+out/test-%: out/util/test/main.cpp.o $(shell find out/tests)
 	@# A slight hack: we find the .cpp files, get a list of .o files, and call "make" again
 	@TEST_OPP_FILES=$$(find "tests/$*" -iname "*.cpp" | sort | sed "s/\(.*\)/out\/\1.o/") ;\
 	$(MAKE) $$TEST_OPP_FILES ;\
