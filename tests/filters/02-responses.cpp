@@ -11,7 +11,9 @@
 template<class Filter>
 void testResponse(Test &test, Filter &filter, double accuracy=1e-6) {
 	auto spectrum = getSpectrum(filter);
-	for (size_t i = 0; i < spectrum.size()/2; ++i) {
+	
+	for (int r = 0; r < 10; ++r) {
+		int i = int(std::floor(test.random(0, spectrum.size()/2)));
 		double f = i*1.0/spectrum.size();
 		std::complex<double> predicted = filter.response(f);
 		std::complex<double> actual = spectrum[i];

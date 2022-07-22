@@ -44,7 +44,7 @@ namespace filters {
 		Sample a1 = 0, a2 = 0, b0 = 1, b1 = 0, b2 = 0;
 		Sample x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 		
-		enum class Type {highpass, lowpass, highShelf, lowShelf, bandpass, notch, peak};
+		enum class Type {highpass, lowpass, highShelf, lowShelf, bandpass, notch, peak, allpass};
 
 		SIGNALSMITH_INLINE BiquadStatic & configure(Type type, double scaledFreq, double octaves, double sqrtGain, BiquadDesign design) {
 			scaledFreq = std::max(0.0001, std::min(0.4999, scaledFreq));
@@ -176,6 +176,10 @@ namespace filters {
 				a0 = 1 + alpha/A;
 				a1 = b1;
 				a2 = 1 - alpha/A;
+			} else if (type == Type::allpass) {
+				a0 = b2 = 1 + alpha;
+				a1 = b1 = -2*cos_w0;
+				a2 = b0 = 1 - alpha;
 			} else {
 				// reset to neutral
 				a1 = a2 = b1 = b2 = 0;
@@ -286,7 +290,11 @@ namespace filters {
 			double sqrtGain = std::pow(10, db*0.025);
 			return configure(Type::lowShelf, scaledFreq, octaves, sqrtGain, correctBandwidth ? bwDesign : BiquadDesign::bilinear);
 		}
-		
+
+		BiquadStatic & allpass(double scaledFreq, double octaves=1, BiquadDesign design=bwDesign) {
+			return configure(Type::allpass, scaledFreq, octaves, 0, design);
+		}
+
 		BiquadStatic & addGain(double factor) {
 			b0 *= factor;
 			b1 *= factor;

@@ -52,7 +52,15 @@ TEST("Gain", filters_gain_db) {
 		
 		for (int i = 0; i < 10; ++i) {
 			float f = test.random(0, 0.5);
-			TEST_APPROX(filter.responseDb(f) + gain, filter2.responseDb(f), accuracy);
+			auto expected = filter.responseDb(f) + gain;
+			auto actual = filter2.responseDb(f);
+			if (expected > -60) {
+				double a = accuracy;
+				if (expected < -20) {
+					a *= 10;
+				}
+				TEST_APPROX(expected, actual, a);
+			}
 		}
 	}
 }
