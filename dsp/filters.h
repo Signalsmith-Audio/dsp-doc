@@ -23,12 +23,13 @@ namespace filters {
 		\diagram{filters-peak.svg}
 		\diagram{filters-bandpass.svg}
 		\diagram{filters-notch.svg}
+		\diagram{filters-allpass.svg}
 	 */
 	enum class BiquadDesign {
 		bilinear, ///< Bilinear transform, adjusting for centre frequency but not bandwidth
  		cookbook, ///< RBJ's "Audio EQ Cookbook".  Based on `bilinear`, adjusting bandwidth (for peak/notch/bandpass) to preserve the ratio between upper/lower boundaries.  This performs oddly near Nyquist.
 		oneSided, ///< Based on `bilinear`, adjusting bandwidth to preserve the lower boundary (leaving the upper one loose).
-		vicanek ///< From Martin Vicanek's [Matched Second Order Digital Filters](https://vicanek.de/articles/BiquadFits.pdf).  Currently incomplete, falling back to `oneSided` for the shelving filters.  This takes the poles from the impulse-invariant approach, and then picks the zeros to create a better match.  This means that Nyquist is not 0dB for peak/notch (or -Inf for lowpass), but it is a decent match to the analogue prototype.
+		vicanek ///< From Martin Vicanek's [Matched Second Order Digital Filters](https://vicanek.de/articles/BiquadFits.pdf).  Falls back to `oneSided` for shelf and allpass filters.  This takes the poles from the impulse-invariant approach, and then picks the zeros to create a better match.  This means that Nyquist is not 0dB for peak/notch (or -Inf for lowpass), but it is a decent match to the analogue prototype.
 	};
 	
 	/** A standard biquad.
