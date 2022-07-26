@@ -142,6 +142,8 @@ statsPlots("interpolator-KaiserSincN", ["4-point", "8-point", "20-point"], ["del
 statsPlots("interpolator-KaiserSincN-min", ["4-point", "8-point", "20-point"], ["delay-random-access-sinc4min", "delay-random-access-sinc8min", "delay-random-access-sinc20min"])
 statsPlots("delay-random-access-linear")
 statsPlots("delay-random-access-cubic")
+statsPlots("delay-random-access-nearest")
+statsPlots("interpolator-cubic-linear-comparison", ["Spline", "Lagrange-3", "Linear"], ["delay-random-access-cubic", "delay-random-access-lagrange3", "delay-random-access-linear"])
 
 if os.path.isdir(prefix):
 	suffix = ".fractional-amplitude.csv"

@@ -345,6 +345,8 @@ namespace delay {
 	/** \defgroup Interpolators Interpolators
 		\ingroup Delay
 		@{ */
+	/// Nearest-neighbour interpolator
+	/// \diagram{delay-random-access-nearest.svg,aliasing and maximum amplitude/delay errors for different input frequencies}
 	template<typename Sample>
 	struct InterpolatorNearest {
 		static constexpr int inputLength = 1;
