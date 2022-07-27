@@ -27,8 +27,7 @@ TEST("Cubic segments (example)", example) {
 	points.emplace_back(6.5, 1.5);
 
 	Plot2D plot(380, 160);
-	plot.x.minor(2.5, "repeated point").flip();
-	plot.x.minor(4, "jump");
+	plot.x.blank();
 	plot.y.blank();
 
 	Curve curveSmooth, curveMonotonic, curveLinear;
@@ -42,7 +41,7 @@ TEST("Cubic segments (example)", example) {
 	curveMonotonic.update(true);
 	curveLinear.update();
 	
-	auto &pointLine = plot.line(3);
+	auto &pointLine = plot.line(-1);
 	plot.styleCounter = 0;
 	auto &smoothLine = plot.line(), &monotonicLine = plot.line(), &linearLine = plot.line();
 	
@@ -64,7 +63,9 @@ TEST("Cubic segments (example)", example) {
 	plot.legend(-0.3, 0.8)
 		.line(smoothLine, "smooth")
 		.line(monotonicLine, "monotonic")
-		.line(linearLine.styleIndex, "linear");
+		.line(linearLine.styleIndex, "linear")
+		.marker(pointLine.styleIndex.withMarker(0), "point")
+		.marker(pointLine.styleIndex.withMarker(1), "repeated point");
 	plot.write("cubic-segments-example.svg");
 	
 	return test.pass();
