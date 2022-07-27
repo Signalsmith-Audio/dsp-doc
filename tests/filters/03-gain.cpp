@@ -33,8 +33,6 @@ TEST("Gain", filters_gain) {
 
 TEST("Gain", filters_gain_db) {
 	signalsmith::filters::BiquadStatic<float> filter, filter2;
-	float accuracy = 1e-4;
-
 	for (int t = 0; t < 6; ++t) {
 		if (t == 0) {
 			filter.lowpass(test.random(0, 0.5), test.random(4, 12));
@@ -55,11 +53,7 @@ TEST("Gain", filters_gain_db) {
 			auto expected = filter.responseDb(f) + gain;
 			auto actual = filter2.responseDb(f);
 			if (expected > -60) {
-				double a = accuracy;
-				if (expected < -20) {
-					a *= 10;
-				}
-				TEST_APPROX(expected, actual, a);
+				TEST_APPROX(expected, actual, 0.01);
 			}
 		}
 	}

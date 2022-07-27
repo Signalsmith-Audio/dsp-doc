@@ -32,24 +32,24 @@ TEST("Responses", filter_responses) {
 	signalsmith::filters::BiquadStatic<double> filter;
 	if (test.success) testResponse(test, filter);
 
-	filter.lowpass(test.random(0, 0.5), test.random(0.5, 4));
+	filter.lowpass(test.random(0.01, 0.49), test.random(0.5, 4));
 	if (test.success) testResponse(test, filter);
 
-	filter.highpass(test.random(0, 0.5), test.random(0.5, 4));
+	filter.highpass(test.random(0.01, 0.49), test.random(0.5, 4));
 	if (test.success) testResponse(test, filter);
 
-	filter.bandpass(test.random(0, 0.5), test.random(0.5, 4));
+	filter.bandpass(test.random(0.01, 0.49), test.random(0.5, 4));
 	if (test.success) testResponse(test, filter);
 
-	filter.notch(test.random(0, 0.5), test.random(0.5, 4));
+	filter.notch(test.random(0.01, 0.49), test.random(0.5, 4));
 	if (test.success) testResponse(test, filter);
 
-	filter.peak(test.random(0, 0.5), test.random(0.25, 4), test.random(0.5, 4));
+	filter.peak(test.random(0.01, 0.49), test.random(0.25, 4), test.random(0.5, 4));
 	if (test.success) testResponse(test, filter);
 
-	filter.highShelf(test.random(0, 0.5), test.random(0.25, 4), test.random(0.5, 4));
+	filter.highShelf(test.random(0.01, 0.49), test.random(0.25, 4), test.random(0.5, 4));
 	if (test.success) testResponse(test, filter);
 
-	filter.lowShelf(test.random(0, 0.5), test.random(0.25, 4), test.random(0.5, 4));
+	filter.lowShelf(test.random(0.01, 0.49), test.random(0.25, 4), test.random(0.5, 4));
 	if (test.success) testResponse(test, filter);
 }

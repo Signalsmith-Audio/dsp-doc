@@ -11,7 +11,7 @@ static inline double dbToAmp(double db) {
 }
 
 template<class Filter>
-Spectrum getSpectrum(Filter &filter, double impulseLimit=1e-10, int minLength=256) {
+Spectrum getSpectrum(Filter &filter, double impulseLimit=1e-10, int minLength=256, int maxLength=65536) {
 	filter.reset();
 	Spectrum impulse, spectrum;
 
@@ -28,6 +28,7 @@ Spectrum getSpectrum(Filter &filter, double impulseLimit=1e-10, int minLength=25
 			belowLimitCounter = 0;
 		}
 		++sample;
+		if (sample >= maxLength) break;
 	}
 	
 	int pow2 = 1;
