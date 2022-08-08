@@ -51,6 +51,11 @@ out/test: out/util/test/main.cpp.o $(TEST_CPP_O_FILES)
 	echo "$${TEST_OPP_FILES}" | sed 's/^/     /' ;\
 	$(GCC) out/util/test/main.cpp.o $${TEST_OPP_FILES} -o out/test
 
+windows:
+	mkdir -p out/windows
+	# /O2 for fast code, /Od to disable
+	@echo "/Od /Iutil /Idsp /EHsc /Fo\"out/windows/\" /Fe\"out/test.exe\" $(TEST_CPP_FILES)" > tmp.txt
+
 ## Individual tests
 
 test-% : out/test-%

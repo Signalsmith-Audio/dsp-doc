@@ -8,8 +8,6 @@
 #include <array>
 #include <cmath>
 
-#pragma mark Hadamard
-
 template<typename Sample, size_t size>
 void testHadamardTyped(Test test) {
 	using Hadamard = signalsmith::mix::Hadamard<Sample, size>;
@@ -76,8 +74,6 @@ TEST("Hadamard", hadamard) {
 	testHadamard<16>(test.prefix("16"));
 	testHadamard<32>(test.prefix("32"));
 }
-
-#pragma mark Householder
 
 template<typename Sample, size_t size>
 void testHouseholderTyped(Test test) {
