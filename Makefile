@@ -115,6 +115,8 @@ bump-%: clean all
 		git tag "dev-v$$VERSION" && \
 		./git-sub-branch dsp main && \
 		git tag "v$$VERSION" main ;
+
+release-%: bump-% release
 	
 doxygen:
 	doxygen Doxyfile-local
