@@ -122,7 +122,7 @@ Errors testComplexFft(Test &test, int size, Sample errorLimit=1e-5) {
 	return errors;
 }
 
-TEST("Complex FFT", complex_fft) {
+TEST("Complex FFT") {
 	CsvWriter csvRms("fft-errors-rms");
 	CsvWriter csvPeak("fft-errors-peak");
 	csvRms.line("N", "measured (float)", "measured (double)", "limit (float)", "limit (double)");
@@ -205,7 +205,7 @@ void testRealFft(Test &test, int size, Sample errorLimit=1e-5) {
 	}
 }
 
-TEST("Real FFT", realFft) {
+TEST("Real FFT") {
 	for (auto size : sizes()) {
 		if (size%2) continue; // even sizes only
 
@@ -216,7 +216,7 @@ TEST("Real FFT", realFft) {
 	}
 }
 
-TEST("Modified Real FFT", modifiedRealFft) {
+TEST("Modified Real FFT") {
 	for (auto size : sizes()) {
 		if (size%2) continue; // even sizes only
 
@@ -227,7 +227,7 @@ TEST("Modified Real FFT", modifiedRealFft) {
 	}
 }
 
-TEST("sizeMinimum/sizeMaximum", sizeMinMax) {
+TEST("sizeMinimum/sizeMaximum") {
 	using Sample = float;
 	
 	auto testPowers = [&](int size) {

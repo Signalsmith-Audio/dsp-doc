@@ -65,7 +65,7 @@ void testHadamard(Test test) {
 	testHadamardTyped<float, size>(test.prefix("float"));
 }
 
-TEST("Hadamard", hadamard) {
+TEST("Hadamard") {
 	testHadamard<0>(test.prefix("0"));
 	testHadamard<1>(test.prefix("1"));
 	testHadamard<2>(test.prefix("2"));
@@ -119,7 +119,7 @@ void testHouseholder(Test test) {
 	testHouseholderTyped<std::complex<float>, size>(test.prefix("std::complex<float>"));
 }
 
-TEST("Householder", householder) {
+TEST("Householder") {
 	testHouseholder<0>(test.prefix("0"));
 	testHouseholder<1>(test.prefix("1"));
 	testHouseholder<2>(test.prefix("2"));

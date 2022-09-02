@@ -8,7 +8,7 @@
 
 #include "../common.h"
 
-TEST("STFT writer sample-by-sample", stft_writer_sample_by_sample) {
+TEST("STFT writer sample-by-sample") {
 	constexpr int channels = 2;
 	constexpr int windowSize = 511;
 	constexpr int interval = 256;
@@ -53,7 +53,7 @@ TEST("STFT writer sample-by-sample", stft_writer_sample_by_sample) {
 	}
 }
 
-TEST("STFT window sanity-check", stft_window_checks) {
+TEST("STFT window sanity-check") {
 	signalsmith::spectral::STFT<double> stft;
 	
 	CsvWriter windowCsv("stft-windows");
@@ -98,7 +98,7 @@ TEST("STFT window sanity-check", stft_window_checks) {
 	}
 }
 
-TEST("STFT analyse() and analyseRaw()", stft_analyse) {
+TEST("STFT analyse() and analyseRaw()") {
 	signalsmith::spectral::STFT<double> stft(2, 256, 128);
 	
 	signalsmith::fft::ModifiedRealFFT<double> fft(256);
@@ -139,7 +139,7 @@ TEST("STFT analyse() and analyseRaw()", stft_analyse) {
 	}
 }
 
-TEST("STFT aliasing check", stft_aliasing) {
+TEST("STFT aliasing check") {
 	constexpr int channels = 1;
 	
 	signalsmith::spectral::STFT<double> stft;

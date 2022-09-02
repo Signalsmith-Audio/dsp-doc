@@ -253,11 +253,11 @@ struct PerformanceResults {
 	}
 };
 
-TEST("Performance: Lagrange interpolation (double)", performance_lagrange_double) {
+TEST("Performance: Lagrange interpolation (double)") {
 	PerformanceResults<double> results(test);
 	results.runAll("performance-lagrange-interpolation-double");
 }
-TEST("Performance: Lagrange interpolation (float)", performance_lagrange_float) {
+TEST("Performance: Lagrange interpolation (float)") {
 	PerformanceResults<float> results(test);
 	results.runAll("performance-lagrange-interpolation-float");
 }

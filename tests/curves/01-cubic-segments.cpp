@@ -6,7 +6,7 @@
 #include <array>
 #include <vector>
 
-TEST("Cubic segments (example)", example) {
+TEST("Cubic segments (example)") {
 	using Curve = signalsmith::curves::CubicSegmentCurve<float>;
 	struct Point{
 		float x, y;
@@ -70,7 +70,7 @@ TEST("Cubic segments (example)", example) {
 	
 	return test.pass();
 }
-TEST("Cubic segments (gradient)", segment_gradient) {
+TEST("Cubic segments (gradient)") {
 	using Cubic = signalsmith::curves::Cubic<double>;
 	double x0 = test.random(-1, 1);
 
@@ -97,7 +97,7 @@ TEST("Cubic segments (gradient)", segment_gradient) {
 	}
 }
 
-TEST("Cubic segments (hermite)", segment_hermite) {
+TEST("Cubic segments (hermite)") {
 	using Cubic = signalsmith::curves::Cubic<double>;
 
 	for (int r = 0; r < 100; ++r) {
@@ -117,7 +117,7 @@ TEST("Cubic segments (hermite)", segment_hermite) {
 	}
 }
 
-TEST("Cubic segments (known)", segment_known) {
+TEST("Cubic segments (known)") {
 	using Cubic = signalsmith::curves::Cubic<double>;
 
 	{
@@ -144,7 +144,7 @@ TEST("Cubic segments (known)", segment_known) {
 	}
 }
 
-TEST("Cubic segments (random)", segment_random) {
+TEST("Cubic segments (random)") {
 	using Cubic = signalsmith::curves::Cubic<double>;
 	
 	for (int r = 0; r < 1000; ++r) {
@@ -189,7 +189,7 @@ TEST("Cubic segments (random)", segment_random) {
 	}
 }
 
-TEST("Cubic segments (duplicate points)", duplicate_points) {
+TEST("Cubic segments (duplicate points)") {
 	using Cubic = signalsmith::curves::Cubic<double>;
 
 	{ // Duplicate left point means it continues existing curve (straight here)

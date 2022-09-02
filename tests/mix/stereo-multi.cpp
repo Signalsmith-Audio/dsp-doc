@@ -49,7 +49,7 @@ void testStereo(Test test) {
 	testStereoTyped<float, size>(test.prefix("float"));
 }
 
-TEST("StereoMultiMix", stereoMix) {
+TEST("StereoMultiMix") {
 	testStereo<2>(test.prefix("2"));
 	testStereo<4>(test.prefix("4"));
 	testStereo<6>(test.prefix("6"));

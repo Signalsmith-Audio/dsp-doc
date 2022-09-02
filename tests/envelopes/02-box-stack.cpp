@@ -52,7 +52,7 @@ void analyseStack(Result &result, Test &test, int length, const std::vector<int>
 	result.spectra = spectra;
 }
 
-TEST("Box stack", box_stack) {
+TEST("Box stack") {
 	std::vector<int> depths = {2, 4, 6};
 	Result longResult, shortResult;
 	analyseStack(longResult, test, 1000, depths);
@@ -133,7 +133,7 @@ TEST("Box stack", box_stack) {
 	}
 }
 
-TEST("Box stack properties", box_stack_properties) {
+TEST("Box stack properties") {
 	using Filter = signalsmith::envelopes::BoxStackFilter<float>;
 	CsvWriter csv("box-stack-stats");
 	csv.line("n", "bandwidth", "peak (dB)");
@@ -143,7 +143,7 @@ TEST("Box stack properties", box_stack_properties) {
 	return test.pass();
 }
 
-TEST("Box stack custom ratios", box_stack_custom) {
+TEST("Box stack custom ratios") {
 	using Stack = signalsmith::envelopes::BoxStackFilter<float>;
 	using Filter = signalsmith::envelopes::BoxFilter<float>;
 	
@@ -162,7 +162,7 @@ TEST("Box stack custom ratios", box_stack_custom) {
 	return test.pass();
 }
 
-TEST("Box stack optimal sizes are the right size", box_stack_optimal_size) {
+TEST("Box stack optimal sizes are the right size") {
 	using Stack = signalsmith::envelopes::BoxStackFilter<float>;
 	
 	for (size_t i = 1; i < 20; ++i) {
@@ -176,7 +176,7 @@ TEST("Box stack optimal sizes are the right size", box_stack_optimal_size) {
 	}
 }
 
-TEST("Box stack handles zero sizes without crashing", box_stack_zero_depth) {
+TEST("Box stack handles zero sizes without crashing") {
 	using Stack = signalsmith::envelopes::BoxStackFilter<float>;
 
 	// Results don't have to be good/usable, just not crash.  It's assumed this is a temporary state until its configured properly.

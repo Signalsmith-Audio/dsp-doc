@@ -5,7 +5,7 @@
 
 #include "../common.h"
 
-TEST("Gain", filters_gain) {
+TEST("Gain") {
 	signalsmith::filters::BiquadStatic<float> filter, filter2;
 	float accuracy = 1e-4;
 
@@ -31,7 +31,7 @@ TEST("Gain", filters_gain) {
 	}
 }
 
-TEST("Gain", filters_gain_db) {
+TEST("Gain") {
 	signalsmith::filters::BiquadStatic<float> filter, filter2;
 	for (int t = 0; t < 6; ++t) {
 		if (t == 0) {

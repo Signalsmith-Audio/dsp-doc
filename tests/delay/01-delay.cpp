@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-TEST("Reader", reader_works) {
+TEST("Reader") {
 	int delaySize = 100;
 	signalsmith::delay::Buffer<double> buffer(delaySize);
 	signalsmith::delay::Reader<double> reader;
@@ -24,7 +24,7 @@ TEST("Reader", reader_works) {
 	}
 }
 
-TEST("Delay", delay_works) {
+TEST("Delay") {
 	int delayLength = 127;
 	
 	signalsmith::delay::Delay<double> multiDelay(delayLength);
@@ -42,7 +42,7 @@ TEST("Delay", delay_works) {
 }
 
 
-TEST("Delay: nearest interpolation", delay_interp_none) {
+TEST("Delay: nearest interpolation") {
 	signalsmith::delay::Delay<double, signalsmith::delay::InterpolatorNearest> delay;
 	auto result = collectFractionalDelayStats<double>(test, delay, "delay-random-access-nearest");
 
@@ -56,7 +56,7 @@ TEST("Delay: nearest interpolation", delay_interp_none) {
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
 
-TEST("Delay: linear interpolation", delay_interp_linear) {
+TEST("Delay: linear interpolation") {
 	signalsmith::delay::Delay<double, signalsmith::delay::InterpolatorLinear> delay;
 	auto result = collectFractionalDelayStats<double>(test, delay, "delay-random-access-linear");
 
@@ -70,7 +70,7 @@ TEST("Delay: linear interpolation", delay_interp_linear) {
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
 
-TEST("Delay: cubic interpolation", delay_interp_cubic) {
+TEST("Delay: cubic interpolation") {
 	signalsmith::delay::Delay<double, signalsmith::delay::InterpolatorCubic> delay;
 	auto result = collectFractionalDelayStats<double>(test, delay, "delay-random-access-cubic");
 
@@ -84,7 +84,7 @@ TEST("Delay: cubic interpolation", delay_interp_cubic) {
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
 
-TEST("Delay: Lagrange-3 interpolation", delay_interp_lagrange3) {
+TEST("Delay: Lagrange-3 interpolation") {
 	signalsmith::delay::Delay<double, signalsmith::delay::InterpolatorLagrange3> delay;
 	auto result = collectFractionalDelayStats<double>(test, delay, "delay-random-access-lagrange3");
 
@@ -98,7 +98,7 @@ TEST("Delay: Lagrange-3 interpolation", delay_interp_lagrange3) {
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
 
-TEST("Delay: Lagrange-7 interpolation", delay_interp_lagrange7) {
+TEST("Delay: Lagrange-7 interpolation") {
 	signalsmith::delay::Delay<double, signalsmith::delay::InterpolatorLagrange7> delay;
 	auto result = collectFractionalDelayStats<double>(test, delay, "delay-random-access-lagrange7");
 
@@ -112,7 +112,7 @@ TEST("Delay: Lagrange-7 interpolation", delay_interp_lagrange7) {
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
 
-TEST("Delay: Lagrange-19 interpolation", delay_interp_lagrange19) {
+TEST("Delay: Lagrange-19 interpolation") {
 	signalsmith::delay::Delay<double, signalsmith::delay::InterpolatorLagrange19> delay;
 	auto result = collectFractionalDelayStats<double>(test, delay, "delay-random-access-lagrange19");
 
@@ -126,7 +126,7 @@ TEST("Delay: Lagrange-19 interpolation", delay_interp_lagrange19) {
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
 
-TEST("Delay: Sinc4 interpolation", delay_interp_sinc4) {
+TEST("Delay: Sinc4 interpolation") {
 	signalsmith::delay::Delay<double, signalsmith::delay::InterpolatorKaiserSinc4> delay;
 	auto result = collectFractionalDelayStats<double>(test, delay, "delay-random-access-sinc4");
 
@@ -139,7 +139,7 @@ TEST("Delay: Sinc4 interpolation", delay_interp_sinc4) {
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
 
-TEST("Delay: Sinc8 interpolation", delay_interp_sinc8) {
+TEST("Delay: Sinc8 interpolation") {
 	signalsmith::delay::Delay<double, signalsmith::delay::InterpolatorKaiserSinc8> delay;
 	auto result = collectFractionalDelayStats<double>(test, delay, "delay-random-access-sinc8");
 
@@ -153,7 +153,7 @@ TEST("Delay: Sinc8 interpolation", delay_interp_sinc8) {
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
 
-TEST("Delay: Sinc20 interpolation", delay_interp_sinc20) {
+TEST("Delay: Sinc20 interpolation") {
 	signalsmith::delay::Delay<double, signalsmith::delay::InterpolatorKaiserSinc20> delay;
 	auto result = collectFractionalDelayStats<double>(test, delay, "delay-random-access-sinc20");
 
@@ -167,7 +167,7 @@ TEST("Delay: Sinc20 interpolation", delay_interp_sinc20) {
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
 
-TEST("Delay: Sinc4 interpolation (min-phase)", delay_interp_sinc4min) {
+TEST("Delay: Sinc4 interpolation (min-phase)") {
 	signalsmith::delay::Delay<double, signalsmith::delay::InterpolatorKaiserSinc4Min> delay;
 	auto result = collectFractionalDelayStats<double>(test, delay, "delay-random-access-sinc4min", false);
 
@@ -181,7 +181,7 @@ TEST("Delay: Sinc4 interpolation (min-phase)", delay_interp_sinc4min) {
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
 
-TEST("Delay: Sinc8 interpolation (min-phase)", delay_interp_sinc8min) {
+TEST("Delay: Sinc8 interpolation (min-phase)") {
 	signalsmith::delay::Delay<double, signalsmith::delay::InterpolatorKaiserSinc8Min> delay;
 	auto result = collectFractionalDelayStats<double>(test, delay, "delay-random-access-sinc8min", false);
 
@@ -195,7 +195,7 @@ TEST("Delay: Sinc8 interpolation (min-phase)", delay_interp_sinc8min) {
 	result.test(test, bandwidth, aliasing, ampLow, ampHigh, delayError);
 }
 
-TEST("Delay: Sinc20 interpolation (min-phase)", delay_interp_sinc20min) {
+TEST("Delay: Sinc20 interpolation (min-phase)") {
 	signalsmith::delay::Delay<double, signalsmith::delay::InterpolatorKaiserSinc20Min> delay;
 	auto result = collectFractionalDelayStats<double>(test, delay, "delay-random-access-sinc20min", false);
 

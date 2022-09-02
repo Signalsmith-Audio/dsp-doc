@@ -43,7 +43,7 @@ void testAllpass(Test &&test, double freq, double octaves=1.2) {
 	}
 }
 
-TEST("Allpass", filters_allpass) {
+TEST("Allpass") {
 	for (int r = 0; r < 1000; ++r) {
 		double freq = test.random(0.001, 0.49);
 		if (test.success) testAllpass<double>(test.prefix("double@" + std::to_string(freq)), freq);

@@ -6,7 +6,7 @@
 
 #include "envelopes.h"
 
-TEST("Box sum", box_sum) {
+TEST("Box sum") {
 	int length = 1000;
 	std::vector<double> signal(length);
 	for (auto &v : signal) {
@@ -57,7 +57,7 @@ TEST("Box sum", box_sum) {
 	}
 }
 
-TEST("Box sum (drift)", box_sum_drift) {
+TEST("Box sum (drift)") {
 	int maxBoxLength = 100;
 	signalsmith::envelopes::BoxSum<float> boxSum(maxBoxLength);
 	
@@ -82,7 +82,7 @@ TEST("Box sum (drift)", box_sum_drift) {
 	}
 }
 
-TEST("Box filter (example)", box_filter_example) {
+TEST("Box filter (example)") {
 	int boxLength = 100;
 	signalsmith::envelopes::BoxFilter<double> boxFilter(boxLength + 100);
 	boxFilter.set(boxLength);

@@ -5,7 +5,7 @@
 
 #include "../common.h"
 
-TEST("Shelf (bandwidth)", filters_shelf_bandwidth) {
+TEST("Shelf (bandwidth)") {
 	using Filter = signalsmith::filters::BiquadStatic<double>;
 	for (int r = 0; r < 100; ++r) {
 		double freq = test.random(0.001, 0.49);
@@ -25,7 +25,7 @@ TEST("Shelf (bandwidth)", filters_shelf_bandwidth) {
 	}
 }
 
-TEST("Shelf (max slope)", filters_shelf_slope) {
+TEST("Shelf (max slope)") {
 	using Filter = signalsmith::filters::BiquadStatic<double>;
 	using Design = signalsmith::filters::BiquadDesign;
 	for (int r = 0; r < 100; ++r) {

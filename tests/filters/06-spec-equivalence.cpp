@@ -5,7 +5,7 @@
 
 #include <cmath>
 
-TEST("Filter dB/Q methods", filters_db_q) {
+TEST("Filter dB/Q methods") {
 	using Filter = signalsmith::filters::BiquadStatic<double>;
 	using Design = signalsmith::filters::BiquadDesign;
 	Test &outerTest = test;

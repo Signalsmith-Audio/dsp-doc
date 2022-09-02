@@ -22,7 +22,7 @@ void testComplex(Test &test) {
 	}
 }
 
-TEST("Complex multiplcation", performance_lagrange_double) {
+TEST("Complex multiplcation") {
 	testComplex<float>(test);
 	testComplex<double>(test);
 }

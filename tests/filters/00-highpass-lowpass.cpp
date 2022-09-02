@@ -33,7 +33,7 @@ void testReset(Test &&test) {
 	if (outA != outB) return test.fail("Reset didn't clear properly");
 	if (outA == outNoReset) return test.fail("something weird's going on");
 }
-TEST("Filter reset", filter_reset) {
+TEST("Filter reset") {
 	testReset<double>(test.prefix("double"));
 	testReset<float>(test.prefix("float"));
 }
@@ -140,7 +140,7 @@ void testButterworth(Test &&test, double freq, signalsmith::filters::BiquadDesig
 	}
 }
 
-TEST("Butterworth filters", filters_butterworth) {
+TEST("Butterworth filters") {
 	for (int i = 0; test.success && i < 10; ++i) {
 		double f = test.random(0.02, 0.48);
 		std::string n = std::to_string(f);

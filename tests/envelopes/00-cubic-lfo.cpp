@@ -7,7 +7,7 @@
 
 #include <array>
 
-TEST("Cubic LFO", cubic_lfo) {
+TEST("Cubic LFO") {
 	long seed = 12345;
 	signalsmith::envelopes::CubicLfo lfoA(seed), lfoB(seed), lfoC(seed), lfoD(seed), lfoE(seed);
 	
@@ -26,7 +26,7 @@ TEST("Cubic LFO", cubic_lfo) {
 	return test.pass();
 }
 
-TEST("Cubic LFO (spectrum)", cubic_lfo_spectrum) {
+TEST("Cubic LFO (spectrum)") {
 	constexpr int count = 5;
 	std::array<double, count> factors = {0, 0.2, 0.4, 0.6, 0.8};
 
@@ -81,7 +81,7 @@ TEST("Cubic LFO (spectrum)", cubic_lfo_spectrum) {
 	return test.pass();
 }
 
-TEST("Cubic LFO (changes)", cubic_lfo_changes) {
+TEST("Cubic LFO (changes)") {
 	double low = 0, high = 1;
 	double rate = 0.01;
 	signalsmith::envelopes::CubicLfo lfo, randomLfo(12345);

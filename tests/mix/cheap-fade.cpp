@@ -7,7 +7,7 @@
 #include <array>
 #include <cmath>
 
-TEST("Cheap cross-fade", crossfade) {
+TEST("Cheap cross-fade") {
 	float to, from;
 	signalsmith::mix::cheapEnergyCrossfade(0.0, to, from);
 	TEST_APPROX(to, 0, 1e-6);

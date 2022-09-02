@@ -8,7 +8,7 @@
 
 #include "../common.h"
 
-TEST("STFT processor", stft_writer_sample_by_sample) {
+TEST("STFT processor") {
 	constexpr int channels = 3;
 	constexpr int windowSize = 511;
 	constexpr int interval = 256;

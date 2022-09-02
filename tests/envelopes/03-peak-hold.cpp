@@ -6,7 +6,7 @@
 
 #include "envelopes.h"
 
-TEST("Peak hold", peak_hold) {
+TEST("Peak hold") {
 	int length = 1000;
 	std::vector<float> signal(length);
 	for (auto &v : signal) {
@@ -54,7 +54,7 @@ TEST("Peak hold", peak_hold) {
 	}
 }
 
-TEST("Peak hold (example)", peak_hold_example) {
+TEST("Peak hold (example)") {
 	int length = 250;
 	signalsmith::envelopes::CubicLfo lfo(1248);
 	lfo.set(0, 10, 0.05, 2, 1);
@@ -70,7 +70,7 @@ TEST("Peak hold (example)", peak_hold_example) {
 	return test.pass();
 }
 
-TEST("Peak hold (push and pop)", peak_hold_push_pop) {
+TEST("Peak hold (push and pop)") {
 	int maxLength = 200;
 	signalsmith::envelopes::PeakHold<float> peakHold(10);
 	peakHold.resize(maxLength);
@@ -115,7 +115,7 @@ TEST("Peak hold (push and pop)", peak_hold_push_pop) {
 	check();
 }
 
-TEST("Peak hold (push and pop random)", peak_hold_push_pop_random) {
+TEST("Peak hold (push and pop random)") {
 	int maxLength = 200;
 	signalsmith::envelopes::PeakHold<float> peakHold(maxLength);
 
@@ -194,7 +194,7 @@ TEST("Peak hold (push and pop random)", peak_hold_push_pop_random) {
 	check();
 }
 
-TEST("Peak hold (boundary bug)", peak_hold_boundary_bug) {
+TEST("Peak hold (boundary bug)") {
 	signalsmith::envelopes::PeakHold<float> peakHold(200);
 	peakHold.set(0);
 
@@ -209,7 +209,7 @@ TEST("Peak hold (boundary bug)", peak_hold_boundary_bug) {
 
 // TODO: test that expanding size re-includes previous values
 
-//TEST("Peak hold (overflow)", peak_hold_overflow) {
+//TEST("Peak hold (overflow)") {
 //	int maxLength = 200;
 //	signalsmith::envelopes::PeakHold<float> peakHold(maxLength);
 //

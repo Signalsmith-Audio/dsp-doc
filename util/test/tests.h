@@ -1,3 +1,45 @@
+/**
+	Simple testing macros.  Each `.cpp` should include this file, and be linked with `main.cpp`
+	
+	To define a test:
+		#include "tests.h"
+	
+		TEST("MyClass does the thing") {
+			if (MyClass::foo() != 5) {
+				return test.fail();
+			}
+		}
+	The implicit argument `test` is of type `Test`.
+		
+	Other useful methods and macros:
+		test.log("foo");
+		TEST_EXPR(a + b);
+		TEST_ASSERT(true);
+		TEST_EQUAL(a, b);
+		TEST_APPROX(a, b, 0.001);
+	
+		test.random(0.1, 0.2); // pseudo-random double from SEED=
+		test.randomInt(0, 10); // inclusive
+		
+	Define a sub-test prefix:
+		Test subTest = test.prefix("foo");
+	This is mostly useful when doing bits of nested processing:
+		Test &outerTest = test;
+		for (int i = 0; i < 100; ++i) {
+			Test test = outerTest.prefix(std::to_string(i));
+			TEST_EXPR(i + 100);
+		}
+	Or for passing into other methods:
+		template<typename T>
+		void typedTest(Test test) {
+			//...
+		}
+		TEST("Test double") {
+			typedTest<double>(test.prefix("double"));
+		}
+	These prefixes are used for `test.log()` calls and other macros, but are invisible if the test passes.
+*/
+
 #ifndef _TEST_FRAMEWORK_TESTS_H
 #define _TEST_FRAMEWORK_TESTS_H
 
@@ -130,19 +172,21 @@ public:
 };
 
 #define TEST_VAR_NAME test
-// A macro to define a new test
-// Use like:	TEST(some_unique_name) {...}
-#define TEST(description, uniqueName) \
-	static void test_##uniqueName (Test &); \
-	static Test Test_##uniqueName {_globalTestList, std::string(__FILE__ ":") + std::to_string(__LINE__), description, test_##uniqueName}; \
-	static void test_##uniqueName (Test &TEST_VAR_NAME)
+#define TESTLIST_GLOBAL_NAME _globalTestList
+#define TEST_UNIQUE_NAME(x, y) x ## y
+#define TEST_UNIQUE_NAME2(x, y) TEST_UNIQUE_NAME(x, y)
+#define TEST_LINE_NAME(x) TEST_UNIQUE_NAME2(x, __LINE__)
+#define TEST(description) \
+	static void TEST_LINE_NAME(test_line) (Test &); \
+	static Test TEST_LINE_NAME(Test_line) {TESTLIST_GLOBAL_NAME, std::string(__FILE__ ":") + std::to_string(__LINE__), description, TEST_LINE_NAME(test_line)}; \
+	static void TEST_LINE_NAME(test_line) (Test &TEST_VAR_NAME)
 // Use if defining test inside a struct (e.g. for templating)
-#define TEST_METHOD(description, uniqueName) \
-	static void test_##uniqueName (Test &test) { \
-		testbody_##uniqueName(test); \
+#define TEST_METHOD(description) \
+	static void TEST_LINE_NAME(test_line) (Test &test) { \
+		TEST_LINE_NAME(testbody_line)(test); \
 	} \
-	Test Test_##uniqueName {_globalTestList, std::string(__FILE__ ":") + std::to_string(__LINE__), description, test_##uniqueName}; \
-	static void testbody_##uniqueName (Test &TEST_VAR_NAME)
+	Test TEST_LINE_NAME(Test_line) {TESTLIST_GLOBAL_NAME, std::string(__FILE__ ":") + std::to_string(__LINE__), description, TEST_LINE_NAME(test_line)}; \
+	static void TEST_LINE_NAME(testbody_line) (Test &TEST_VAR_NAME)
 #define TEST_ASSERT(expr) \
 	if (!(expr)) {return TEST_VAR_NAME.fail(#expr " (" __FILE__ ":" + std::to_string(__LINE__) + ")");}
 #define TEST_EXPR(expr) \
@@ -154,7 +198,7 @@ public:
 
 #define FAIL(reason) TEST_VAR_NAME.fail(reason)
 
-extern TestList _globalTestList;
+extern TestList TESTLIST_GLOBAL_NAME;
 
 /***** Benchmarking stuff *****/
 

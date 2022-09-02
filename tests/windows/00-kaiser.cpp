@@ -69,14 +69,14 @@ void testKaiser(Test &test, const std::vector<int> &overlaps, const std::vector<
 	}
 }
 
-TEST("Kaiser window", stft_kaiser_windows_plain) {
+TEST("Kaiser window") {
 	std::vector<int> overlaps = {2, 4, 6, 8};
 	std::vector<double> aliasingLimits = {-13, -39, -65, -91};
 
 	testKaiser(test, overlaps, aliasingLimits, false, false);
 }
 
-TEST("Kaiser window (heuristic optimal)", stft_kaiser_windows) {
+TEST("Kaiser window (heuristic optimal)") {
 	std::vector<int> overlaps = {2, 4, 6, 8};
 	std::vector<double> aliasingLimits = {-13, -41, -66, -92};
 
@@ -89,7 +89,7 @@ TEST("Kaiser window (heuristic optimal)", stft_kaiser_windows) {
 		csv.line(b, Kaiser::bandwidthToBeta(b, false), Kaiser::bandwidthToPeakDb(b, false), Kaiser::bandwidthToEnergyDb(b, false), Kaiser::bandwidthToBeta(b, true), Kaiser::bandwidthToPeakDb(b, true), Kaiser::bandwidthToEnergyDb(b, true));
 	}
 }
-TEST("Kaiser window (heuristic optimal P-R scaled)", stft_kaiser_windows_pr) {
+TEST("Kaiser window (heuristic optimal P-R scaled)") {
 	std::vector<int> overlaps = {2, 4, 6, 8};
 	std::vector<double> aliasingLimits = {-13, -41, -66, -92};
 
@@ -140,7 +140,7 @@ SidelobeStats measureKaiser(double bandwidth, double measureBandwidth, bool forc
 	return result;
 }
 
-TEST("Kaiser: beta & bandwidth", stft_kaiser_beta_bandwidth) {
+TEST("Kaiser: beta & bandwidth") {
 	using Kaiser = signalsmith::windows::Kaiser;
 	
 	int points = 389;
@@ -163,14 +163,14 @@ TEST("Kaiser: beta & bandwidth", stft_kaiser_beta_bandwidth) {
 	}
 }
 
-double ampToDb(double energy) {
+static double ampToDb(double energy) {
 	return 20*std::log10(energy + 1e-100);
 }
-double energyToDb(double energy) {
+static double energyToDb(double energy) {
 	return 10*std::log10(energy + 1e-100);
 }
 
-TEST("Kaiser: bandwidth & sidelobes", stft_kaiser_bandwidth_sidelobes) {
+TEST("Kaiser: bandwidth & sidelobes") {
 	using Kaiser = signalsmith::windows::Kaiser;
 
 	CsvWriter csv("kaiser-bandwidth-sidelobes");

@@ -5,7 +5,7 @@
 
 #include <cmath>
 
-TEST("Reciprocal correctly maps", reciprocal) {
+TEST("Reciprocal correctly maps") {
 	double accuracy = 1e-6;
 	
 	for (int repeat = 0; repeat < 100; ++repeat) {
@@ -31,7 +31,7 @@ TEST("Reciprocal correctly maps", reciprocal) {
 	}
 }
 
-TEST("Reciprocal inverse", reciprocal_inverse) {
+TEST("Reciprocal inverse") {
 	double accuracy = 1e-6;
 	
 	for (int repeat = 0; repeat < 10; ++repeat) {
@@ -52,7 +52,7 @@ TEST("Reciprocal inverse", reciprocal_inverse) {
 	}
 }
 
-TEST("Reciprocal compose", reciprocal_compose) {
+TEST("Reciprocal compose") {
 	double accuracy = 1e-6;
 	
 	for (int repeat = 0; repeat < 10; ++repeat) {
@@ -78,7 +78,7 @@ TEST("Reciprocal compose", reciprocal_compose) {
 	}
 }
 
-TEST("Reciprocal (example)", reciprocal_example) {
+TEST("Reciprocal (example)") {
 	Plot2D plot(200, 200);
 	plot.x.linear(-2, 1).major(-2, "").label("input");
 	plot.y.linear(0, 10).major(0, "").label("output");

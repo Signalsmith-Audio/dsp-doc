@@ -5,7 +5,7 @@
 #include <cmath>
 #include <test/tests.h>
 
-TEST("Windowed FFT: flat window function", no_window) {
+TEST("Windowed FFT: flat window function") {
 	int fftSize = 256;
 	
 	signalsmith::spectral::WindowedFFT<float> fft;
@@ -31,7 +31,7 @@ double windowHann(double x) {
 	return 0.5 - 0.5*std::cos(2*M_PI*x);
 }
 
-TEST("Windowed FFT: Hann", windowed_hann) {
+TEST("Windowed FFT: Hann") {
 	int fftSize = 336; /// 2^4 * 3 * 7 - not a "fast size", but not too slow either
 	
 	signalsmith::spectral::WindowedFFT<float> fft;
@@ -60,7 +60,7 @@ TEST("Windowed FFT: Hann", windowed_hann) {
 	test.closeEnough(freq[harmonic + 1].real(), -0.25*fftSize, "n+1", 1e-4);
 }
 
-TEST("Inverse, with windowing", windowed_inverse) {
+TEST("Inverse, with windowing") {
 	int fftSize = 256;
 	
 	signalsmith::spectral::WindowedFFT<double> fft;

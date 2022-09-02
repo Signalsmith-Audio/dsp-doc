@@ -51,7 +51,7 @@ void testBandpass(Test &&test, double freq, double octaves=1.2) {
 	}
 }
 
-TEST("Bandpass", filters_bandpass) {
+TEST("Bandpass") {
 //	testBandpass<double>(test.prefix("double@0.05"), 0.05);
 //	if (test.success) testBandpass<float>(test.prefix("float@0.05"), 0.05);
 	if (test.success) testBandpass<double>(test.prefix("double@0.2"), 0.2);

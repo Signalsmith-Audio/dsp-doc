@@ -7,7 +7,7 @@
 #include <iostream>
 #include <array>
 
-TEST("Multi-Delay", delay_interp_none) {
+TEST("Multi-Delay") {
 	constexpr int channels = 3;
 	int delayLength = 80;
 	

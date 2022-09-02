@@ -28,7 +28,7 @@ void testResponse(Test &test, Filter &filter, double accuracy=1e-6) {
 	}
 }
 
-TEST("Responses", filter_responses) {
+TEST("Responses") {
 	signalsmith::filters::BiquadStatic<double> filter;
 	if (test.success) testResponse(test, filter);
 

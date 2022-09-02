@@ -5,7 +5,7 @@
 
 #include "test-delay-stats.h"
 
-TEST("Multi-channel buffer stores data", delay_interp_none) {
+TEST("Multi-channel buffer stores data") {
 	int delaySize = 100;
 	int channels = 4;
 	using MultiBuffer = signalsmith::delay::MultiBuffer<double>;

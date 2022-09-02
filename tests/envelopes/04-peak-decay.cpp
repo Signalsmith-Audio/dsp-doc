@@ -6,7 +6,7 @@
 
 #include "envelopes.h"
 
-TEST("Peak decay linear (example)", linear_decay_example) {
+TEST("Peak decay linear (example)") {
 	int length = 250;
 	signalsmith::envelopes::CubicLfo lfo(12345);
 	lfo.set(0, 1, 0.05, 2, 1);
@@ -28,7 +28,7 @@ TEST("Peak decay linear (example)", linear_decay_example) {
 	return test.pass();
 }
 
-TEST("Peak decay linear cascade (example)", linear_decay_cascade_example) {
+TEST("Peak decay linear cascade (example)") {
 	int length = 250;
 	signalsmith::envelopes::CubicLfo lfo(12345);
 	lfo.set(0, 1, 0.05, 2, 1);

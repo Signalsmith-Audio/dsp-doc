@@ -5,7 +5,7 @@
 
 #include <cmath>
 
-TEST("Linear segments", linear_segment) {
+TEST("Linear segments") {
 	using Linear = signalsmith::curves::Linear<float>;
 	float accuracy = 1e-4;
 	

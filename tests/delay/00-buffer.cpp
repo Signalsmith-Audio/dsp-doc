@@ -5,7 +5,7 @@
 
 #include "test-delay-stats.h"
 
-TEST("Delay buffer stores data", delay_interp_none) {
+TEST("Delay buffer stores data") {
 	int delaySize = 100;
 	signalsmith::delay::Buffer<double> buffer(delaySize);
 	

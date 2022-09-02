@@ -8,7 +8,7 @@
 
 #include "./filter-tests.h"
 
-TEST("Filter design plots", filters_butterworth_plots) {
+TEST("Filter design plots") {
 	auto drawShape = [&](int shape, std::string name) {
 		Figure figure;
 		int plotCounter = 0;

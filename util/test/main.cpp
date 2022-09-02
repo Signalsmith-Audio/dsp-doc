@@ -1,13 +1,13 @@
 #include "../simple-args.h"
 #include "../console-colours.h"
 
-#include "tests.h"
+#include "./tests.h"
 #include <cstdlib> // srand, rand
 #include <ctime> // time
 #include <cstdlib> // getenv
 #include <string>
 
-TestList _globalTestList;
+TestList TESTLIST_GLOBAL_NAME;
 
 void Test::run(int depth, bool silent) {
 	if (running) return fail("Re-entered test function");
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
 	args.errorExit();
 
 	srand(randomSeed);
-	_globalTestList.setRandomSeed(randomSeed);
+	TESTLIST_GLOBAL_NAME.setRandomSeed(randomSeed);
 	std::cout << Console::Dim << "SEED=" << randomSeed << Console::Reset << "\n";
-	return _globalTestList.run(repeats);
+	return TESTLIST_GLOBAL_NAME.run(repeats);
 }
