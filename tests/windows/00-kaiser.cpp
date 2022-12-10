@@ -96,49 +96,7 @@ TEST("Kaiser window (heuristic optimal P-R scaled)") {
 	testKaiser(test, overlaps, aliasingLimits, true, true);
 }
 
-struct SidelobeStats {
-	double mainPeak = 0, sidePeak = 0;
-	double mainEnergy = 0, sideEnergy = 0;
-	double enbw = 0;
-};
-SidelobeStats measureKaiser(double bandwidth, double measureBandwidth, bool forcePR=false) {
-	SidelobeStats result;
-	
-	int length = 256;
-	int oversample = 64;
-	signalsmith::fft::RealFFT<double> realFft(length*oversample);
-	std::vector<double> window(length*oversample, 0);
-
-	auto kaiser = signalsmith::windows::Kaiser::withBandwidth(bandwidth);
-	kaiser.fill(window, length); // Leave the rest as zero padding (oversamples the frequency domain)
-	if (forcePR) {
-		signalsmith::windows::forcePerfectReconstruction(window, length, length/measureBandwidth);
-	}
-
-	double sum = 0, sum2 = 0;
-	for (auto s : window) {
-		sum += s;
-		sum2 += s*s;
-	}
-	result.enbw = length*sum2/(sum*sum);
-
-	std::vector<std::complex<double>> spectrum(window.size()/2);
-	realFft.fft(window, spectrum);
-	
-	for (size_t b = 0; b < spectrum.size(); ++b) {
-		double freq = b*1.0/oversample;
-		double energy = std::norm(spectrum[b]);
-		double abs = std::sqrt(energy);
-		if (freq <= measureBandwidth*0.5) {
-			result.mainPeak = std::max(abs, result.mainPeak);
-			result.mainEnergy += energy;
-		} else {
-			result.sidePeak = std::max(abs, result.sidePeak);
-			result.sideEnergy += energy;
-		}
-	}
-	return result;
-}
+#include "./window-stats.h"
 
 TEST("Kaiser: beta & bandwidth") {
 	using Kaiser = signalsmith::windows::Kaiser;
@@ -163,119 +121,141 @@ TEST("Kaiser: beta & bandwidth") {
 	}
 }
 
-static double ampToDb(double energy) {
-	return 20*std::log10(energy + 1e-100);
-}
-static double energyToDb(double energy) {
-	return 10*std::log10(energy + 1e-100);
-}
-
-TEST("Kaiser: bandwidth & sidelobes") {
+double optimalKaiserBandwidth(double b) {
 	using Kaiser = signalsmith::windows::Kaiser;
+	double hb = Kaiser::betaToBandwidth(Kaiser::bandwidthToBeta(b, true));
+	//hb = b + 8/((b + 3)*(b + 3)) + 0.25*std::max(3 - b, 0.0);
 
-	CsvWriter csv("kaiser-bandwidth-sidelobes");
-	csv.line("bandwidth", "exact peak (dB)", "exact energy (dB)", "heuristic bandwidth", "heuristic peak (dB)", "heuristiic energy (dB)", "exact ENBW", "heuristic ENBW");
-
-	auto optimalEnergyBandwidth = [&](double b) {
-		double hb = Kaiser::betaToBandwidth(Kaiser::bandwidthToBeta(b, true));
-		//hb = b + 8/((b + 3)*(b + 3)) + 0.25*std::max(3 - b, 0.0);
-
-		// Brute-force search, used to tune the heuristic
-		/*
-		double increment = b*0.005;
-		auto energyRatio = [&](double hb) {
-			auto stats = measureKaiser(hb, b, true);
-			double peakRatio = stats.sidePeak/(stats.mainPeak + 1e-100);
-			double energyRatio = stats.sideEnergy/(stats.mainEnergy + 1e-100);
-			return energyRatio + peakRatio*0.1/b;
-		};
-
-		double best = energyToDb(energyRatio(hb));
-		for (double c = std::max<double>(b - 1, 0); c < b + 1; c += increment) {
-			double candidate = energyToDb(energyRatio(c));
-			if (candidate < best) {
-				hb = c;
-				best = candidate;
-			}
-		}
-		//*/
-		return hb;
-	};
-
-	for (double b = 0.1; b < 22; b += 0.1) {
-		auto stats = measureKaiser(b, b);
-
+	// Brute-force search, used to tune the heuristic
+	/*
+	double increment = b*0.005;
+	auto energyRatio = [&](double hb) {
+		auto stats = measureKaiser(hb, b, true);
 		double peakRatio = stats.sidePeak/(stats.mainPeak + 1e-100);
 		double energyRatio = stats.sideEnergy/(stats.mainEnergy + 1e-100);
-		
-		double energyDb = energyToDb(energyRatio);
-		{ // Approximate energy ratio
-			double predictedEnergyDb = Kaiser::bandwidthToEnergyDb(b);
-			if (b >= 2 && b <= 10 && std::abs(energyDb - predictedEnergyDb) > 0.5) {
-				test.log(b, ": ", energyDb, " ~= ", predictedEnergyDb);
-				return test.fail("Energy approximation should be accurate within 0.5dB, within 2-10x range");
+		return energyRatio + peakRatio*0.1/b;
+	};
+
+	double best = energyToDb(energyRatio(hb));
+	for (double c = std::max<double>(b - 1, 0); c < b + 1; c += increment) {
+		double candidate = energyToDb(energyRatio(c));
+		if (candidate < best) {
+			hb = c;
+			best = candidate;
+		}
+	}
+	//*/
+	return hb;
+};
+
+TEST("Window comparison (Kaiser)") {
+	using Kaiser = signalsmith::windows::Kaiser;
+//	using Confined = signalsmith::windows::ApproximateConfinedGaussian;
+
+	Plot2D bandwidthPeakPlot, bandwidthEnergyPlot, bandwidthEnbwPlot;
+	auto _1 = bandwidthPeakPlot.writeLater("windows-kaiser-sidelobe-peaks.svg");
+	auto _2 = bandwidthEnergyPlot.writeLater("windows-kaiser-sidelobe-energy.svg");
+	auto _3 = bandwidthEnbwPlot.writeLater("windows-kaiser-enbw.svg");
+	
+	bandwidthPeakPlot.x.linear(1, 10).label("bandwidth");
+	bandwidthPeakPlot.y.linear(-120, 0).label("side/main peaks (dB)");
+	for (int i = 1; i <= 10; ++i) bandwidthPeakPlot.x.minor(i);
+	for (int i = -120; i <= 0; i += 20) bandwidthPeakPlot.y.minor(i);
+	bandwidthEnergyPlot.x.copyFrom(bandwidthPeakPlot.x);
+	bandwidthEnergyPlot.y.copyFrom(bandwidthPeakPlot.y).label("side/main energy (dB)");
+	bandwidthEnbwPlot.x.linear(0.1, 22).major(0.1, "").minors(5, 10, 15, 20).label("bandwidth");
+	bandwidthEnbwPlot.y.label("ENBW").linear(0, 3.5).major(0).minors(1, 2, 3);
+	
+	auto &linePeakPlain = bandwidthPeakPlot.line();
+	auto &linePeakHeuristic = bandwidthPeakPlot.line();
+	auto &lineEnergyPlain = bandwidthEnergyPlot.line();
+	auto &lineEnergyHeuristic = bandwidthEnergyPlot.line();
+	auto &lineEnbwPlain = bandwidthEnbwPlot.line();
+	auto &lineEnbwHeuristic = bandwidthEnbwPlot.line();
+	bandwidthPeakPlot.legend(1, 1).add(linePeakPlain, "exact").add(linePeakHeuristic, "heuristic");
+	bandwidthEnergyPlot.legend(1, 1).add(lineEnergyPlain, "exact").add(lineEnergyHeuristic, "heuristic");
+	bandwidthEnbwPlot.legend(1, 0).add(lineEnbwPlain, "exact").add(lineEnbwHeuristic, "heuristic");
+
+	for (double b = 0.1; b < 22; b += 0.1) {
+		auto kaiserPlain = signalsmith::windows::Kaiser::withBandwidth(b, false);
+		auto kaiserHeuristic = signalsmith::windows::Kaiser::withBandwidth(b, true);
+		auto statsPlain = measureWindow(kaiserPlain, b);
+		auto statsHeuristic = measureWindow(kaiserHeuristic, b);
+
+		{
+			double energyDb = energyToDb(statsPlain.sideEnergy/(statsPlain.mainEnergy + 1e-100));
+			lineEnergyPlain.add(b, energyDb);
+			{ // Approximate energy ratio
+				double predictedEnergyDb = Kaiser::bandwidthToEnergyDb(b);
+				if (b >= 2 && b <= 10 && std::abs(energyDb - predictedEnergyDb) > 0.5) {
+					test.log(b, ": ", energyDb, " ~= ", predictedEnergyDb);
+					return test.fail("Energy approximation should be accurate within 0.5dB, within 2-10x range");
+				}
+				double predictedBandwidth = Kaiser::energyDbToBandwidth(predictedEnergyDb);
+				if (std::abs(b - predictedBandwidth) > 1e-3) {
+					test.log(b, " != ", predictedBandwidth, " @ ", predictedEnergyDb);
+					return test.fail("inverse of predicted bandwidth (energy)");
+				}
 			}
-			double predictedBandwidth = Kaiser::energyDbToBandwidth(predictedEnergyDb);
-			if (std::abs(b - predictedBandwidth) > 1e-3) {
-				test.log(b, " != ", predictedBandwidth, " @ ", predictedEnergyDb);
-				return test.fail("inverse of predicted bandwidth (energy)");
+
+			double peakDb = ampToDb(statsPlain.sidePeak/(statsPlain.mainPeak + 1e-100));
+			linePeakPlain.add(b, peakDb);
+			{ // Approximate peak ratio
+				double predictedPeakDb = Kaiser::bandwidthToPeakDb(b);
+				if (b >= 2 && b <= 10 && std::abs(peakDb - predictedPeakDb) > 0.5) {
+					test.log(b, ": ", peakDb, " ~= ", predictedPeakDb);
+					return test.fail("Peak approximation should be accurate within 0.5dB, within 2-10x range");
+				}
+				double predictedBandwidth = Kaiser::peakDbToBandwidth(predictedPeakDb);
+				if (std::abs(b - predictedBandwidth) > 1e-3) {
+					test.log(b, " != ", predictedBandwidth, " @ ", predictedPeakDb);
+					return test.fail("inverse of predicted bandwidth (peak)");
+				}
 			}
 		}
 
-		double peakDb = ampToDb(peakRatio);
-		{ // Approximate peak ratio
-			double predictedPeakDb = Kaiser::bandwidthToPeakDb(b);
-			if (b >= 2 && b <= 10 && std::abs(peakDb - predictedPeakDb) > 0.5) {
-				test.log(b, ": ", peakDb, " ~= ", predictedPeakDb);
-				return test.fail("Peak approximation should be accurate within 0.5dB, within 2-10x range");
+		{
+			double energyDb = energyToDb(statsHeuristic.sideEnergy/(statsHeuristic.mainEnergy + 1e-100));
+			lineEnergyHeuristic.add(b, energyDb);
+			{ // Approximate energy ratio
+				double predictedEnergyDb = Kaiser::bandwidthToEnergyDb(b, true);
+				if (b >= 0.5 && b <= 10 && std::abs(energyDb - predictedEnergyDb) > 0.5) {
+					test.log(b, ": ", energyDb, " ~= ", predictedEnergyDb);
+					return test.fail("Energy approximation (heuristic) should be accurate within 0.5dB, within 2-10x range");
+				}
+				double predictedBandwidth = Kaiser::energyDbToBandwidth(predictedEnergyDb, true);
+				if (std::abs(b - predictedBandwidth) > 1e-3) {
+					test.log(b, " != ", predictedBandwidth, " @ ", predictedEnergyDb);
+					return test.fail("inverse of predicted bandwidth (heuristic energy)");
+				}
 			}
-			double predictedBandwidth = Kaiser::peakDbToBandwidth(predictedPeakDb);
-			if (std::abs(b - predictedBandwidth) > 1e-3) {
-				test.log(b, " != ", predictedBandwidth, " @ ", predictedPeakDb);
-				return test.fail("inverse of predicted bandwidth (peak)");
+
+			double peakDb = ampToDb(statsHeuristic.sidePeak/(statsHeuristic.mainPeak + 1e-100));
+			linePeakHeuristic.add(b, peakDb);
+			{ // Approximate peak ratio
+				double predictedPeakDb = Kaiser::bandwidthToPeakDb(b, true);
+				if (b >= 0.5 && b <= 10 && std::abs(peakDb - predictedPeakDb) > 0.5) {
+					test.log(b, ": ", peakDb, " ~= ", predictedPeakDb);
+					return test.fail("Peak approximation (heuristic) should be accurate within 0.5dB, within 2-10x range");
+				}
+				double predictedBandwidth = Kaiser::peakDbToBandwidth(predictedPeakDb, true);
+				if (b > 0.5 && std::abs(b - predictedBandwidth) > 1e-3) {
+					test.log(b, " != ", predictedBandwidth, " @ ", predictedPeakDb);
+					return test.fail("inverse of predicted bandwidth (heuristic peak)");
+				}
 			}
 		}
 
-		double hb = optimalEnergyBandwidth(b);
-		auto hStats = measureKaiser(hb, b);
-		double hPeakRatio = hStats.sidePeak/(hStats.mainPeak + 1e-100);
-		double hEnergyRatio = hStats.sideEnergy/(hStats.mainEnergy + 1e-100);
-		double hEnergyDb = energyToDb(hEnergyRatio);
-		{ // Approximate energy ratio
-			double predictedEnergyDb = Kaiser::bandwidthToEnergyDb(b, true);
-			if (b >= 0.5 && b <= 10 && std::abs(hEnergyDb - predictedEnergyDb) > 0.5) {
-				test.log(b, ": ", hEnergyDb, " ~= ", predictedEnergyDb);
-				return test.fail("Heuristic energy approximation should be accurate within 0.5dB, within 0.5-10x range");
-			}
-			double predictedBandwidth = Kaiser::energyDbToBandwidth(predictedEnergyDb, true);
-			if (std::abs(b - predictedBandwidth) > 1e-3) {
-				test.log(b, " != ", predictedBandwidth, " @ ", predictedEnergyDb);
-				return test.fail("inverse of predicted bandwidth (heuristic energy)");
-			}
-		}
-		double hPeakDb = ampToDb(hPeakRatio);
-		{ // Approximate peak ratio
-			double predictedPeakDb = Kaiser::bandwidthToPeakDb(b, true);
-			if (b >= 0.5 && b <= 10 && std::abs(hPeakDb - predictedPeakDb) > 0.5) {
-				test.log(b, ": ", hPeakDb, " ~= ", predictedPeakDb);
-				return test.fail("Heuristic peak approximation should be accurate within 0.5dB, within 0.5-10x range");
-			}
-			double predictedBandwidth = Kaiser::peakDbToBandwidth(predictedPeakDb, true);
-			if (b > 0.5 && std::abs(b - predictedBandwidth) > 1e-3) {
-				test.log(b, " != ", predictedBandwidth, " @ ", predictedPeakDb);
-				return test.fail("inverse of predicted bandwidth (heuristic peak)");
-			}
-		}
+		lineEnbwPlain.add(b, statsPlain.enbw);
+		lineEnbwHeuristic.add(b, statsHeuristic.enbw);
 		
-		if (std::abs(stats.enbw - Kaiser::bandwidthToEnbw(b)) > 0.05) {
-			test.log(b, ": ", stats.enbw, " != ", Kaiser::bandwidthToEnbw(b));
+		if (std::abs(statsPlain.enbw - Kaiser::bandwidthToEnbw(b)) > 0.05) {
+			test.log(b, ": ", statsPlain.enbw, " != ", Kaiser::bandwidthToEnbw(b));
 			return test.fail("Predicted ENBW");
 		}
-		if (std::abs(hStats.enbw - Kaiser::bandwidthToEnbw(b, true)) > 0.05) {
-			test.log(b, ": ", stats.enbw, " != ", Kaiser::bandwidthToEnbw(b, true));
+		if (std::abs(statsHeuristic.enbw - Kaiser::bandwidthToEnbw(b, true)) > 0.05) {
+			test.log(b, ": ", statsHeuristic.enbw, " != ", Kaiser::bandwidthToEnbw(b, true));
 			return test.fail("Predicted heuristic ENBW");
 		}
-
-		csv.line(b, ampToDb(peakRatio), energyDb, hb, ampToDb(hPeakRatio), energyToDb(hEnergyRatio), stats.enbw, hStats.enbw);
 	}
 }

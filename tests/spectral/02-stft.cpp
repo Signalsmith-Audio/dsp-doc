@@ -54,48 +54,62 @@ TEST("STFT writer sample-by-sample") {
 }
 
 TEST("STFT window sanity-check") {
-	signalsmith::spectral::STFT<double> stft;
+	using STFT = signalsmith::spectral::STFT<double>;
+	STFT stft;
 	
-	CsvWriter windowCsv("stft-windows");
-	CsvWriter partialCsv("stft-windows-partial");
-
-	int windowSize = 250;
-	int intervals[] = {191, 130, 96, 55, 32};
-	constexpr int intervalCount = sizeof(intervals)/sizeof(intervals[0]);
-
-	windowCsv.write("index");
-	partialCsv.write("index");
-	for (int i = 0; i < 5; ++i) {
-		windowCsv.write(intervals[i]);
-		partialCsv.write(intervals[i]);
-	}
-	windowCsv.line();
-	partialCsv.line();
+	auto testShape = [&](STFT::Window shape, std::string suffix) {
+		stft.windowShape = shape;
 	
-	std::vector<std::vector<double>> windows, partialWindows;
-	for (int i = 0; i < intervalCount; ++i) {
-		int interval = intervals[i];
-		stft.resize(1, windowSize, interval);
-		
-		windows.push_back(stft.window());
-		partialWindows.push_back(stft.partialSumWindow());
-	}
-	for (int i = 0; i < windowSize; ++i) {
-		windowCsv.write(i);
-		partialCsv.write(i);
-		for (int j = 0; j < intervalCount; ++j) {
-			windowCsv.write(windows[j][i]);
-			partialCsv.write(partialWindows[j][i]);
+		Figure figure;
+		auto &singlePlot = figure(0, 0).plot(400, 130);
+		auto &sumPlot = figure(0, 1).plot(400, 130);
+		auto writeLater = figure.writeLater("stft-windows" + suffix + ".svg");
+		singlePlot.y.linear(0, 1).major(0).tick(1).label("synthesis/analysis window");
+		singlePlot.x.linear(0, 1).minors(0, 0.5 ,1);
+		sumPlot.y.copyFrom(singlePlot.y).label("windowed cumulative sum");
+		sumPlot.x.copyFrom(singlePlot.x);
+		auto &legend = sumPlot.legend(0, 0);
+
+		int windowSize = 250;
+		int intervals[] = {191, 130, 96, 55, 32};
+		constexpr int intervalCount = sizeof(intervals)/sizeof(intervals[0]);
+
+		std::vector<std::vector<double>> windows, partialWindows;
+		for (int i = 0; i < intervalCount; ++i) {
+			int interval = intervals[i];
+			stft.resize(1, windowSize, interval);
 			
-			constexpr double fudge = 1e-4;
-
-			if (i > 0) {
-				TEST_ASSERT(partialWindows[j][i] <= partialWindows[j][i - 1] + fudge); // Monotonically decreasing the whole way
+			auto &windowLine = singlePlot.line();
+			windowLine.add(0, 0);
+			auto &sumLine = sumPlot.line();
+			char lineLabel[256];
+			std::snprintf(lineLabel, 256, "%.1fx (%i/%i)", windowSize*1.0/interval, interval, windowSize);
+			legend.add(windowLine, lineLabel);
+			
+			auto &&window = stft.window();
+			auto &&sumWindow = stft.partialSumWindow();
+			for (int i = 0; i < windowSize; ++i) {
+				windowLine.add(i/(windowSize - 1.0), window[i]);
+				sumLine.add(i/(windowSize - 1.0), sumWindow[i]);
+			}
+			windowLine.add(1, 0);
+			sumLine.add(1, 0);
+			
+			windows.push_back(stft.window());
+			partialWindows.push_back(stft.partialSumWindow());
+		}
+		for (int i = 0; i < windowSize; ++i) {
+			for (int j = 0; j < intervalCount; ++j) {
+				constexpr double fudge = 1e-4;
+				if (i > 0) {
+					TEST_ASSERT(partialWindows[j][i] <= partialWindows[j][i - 1] + fudge); // Monotonically decreasing the whole way
+				}
 			}
 		}
-		windowCsv.line();
-		partialCsv.line();
-	}
+	};
+	
+	testShape(STFT::Window::kaiser, "");
+	testShape(STFT::Window::acg, "-acg");
 }
 
 TEST("STFT analyse() and analyseRaw()") {
@@ -142,10 +156,11 @@ TEST("STFT analyse() and analyseRaw()") {
 TEST("STFT aliasing check") {
 	constexpr int channels = 1;
 	
-	signalsmith::spectral::STFT<double> stft;
+	using STFT = signalsmith::spectral::STFT<double>;
+	STFT stft;
 	std::vector<double> ones;
 	
-	auto aliasingForOverlap = [&](int windowSize, int overlap) {
+	auto aliasingForOverlap = [&](int windowSize, int overlap, STFT::Window windowShape) {
 		ones.assign(windowSize + 10, 1);
 		// Break if we do any calculations with this ;)
 		for (int i = windowSize; i < (int)ones.size(); ++i) {
@@ -154,6 +169,7 @@ TEST("STFT aliasing check") {
 		}
 
 		int inputLength = overlap*10;
+		stft.windowShape = windowShape;
 		stft.resize(channels, windowSize, overlap, inputLength);
 		stft += (int)test.random(0, inputLength*2);
 		stft += windowSize; // Enough for the output to warm up
@@ -185,37 +201,44 @@ TEST("STFT aliasing check") {
 		return variance;
 	};
 	
-	auto averageAliasing = [&](int windowSize, int overlap) {
+	auto averageAliasing = [&](int windowSize, int overlap, STFT::Window windowShape) {
 		int repeats = 10;
 		double sum2 = 0;
 		for (int r = 0; r < repeats; ++r) {
-			sum2 += aliasingForOverlap(windowSize, overlap);
+			sum2 += aliasingForOverlap(windowSize, overlap, windowShape);
 		}
 		return 10*std::log10(sum2/repeats);
 	};
 
-	Plot2D plot(250, 165);
-	plot.x.linear(1, 12).major(1, "").ticks(2, 4, 6, 8, 10, 12).label("overlap ratio (window/interval)");
-	plot.y.linear(-150, 0).major(-150, "").ticks(0, -20, -40, -60, -80, -100, -120, -140).label("aliasing (dB)");
-	auto &legend = plot.legend(1, 1);
-	std::array<int, 4> windowSizes = {257, 163, 128, 70};
-	for (int windowSize : windowSizes) {
-		std::cout << "\twindow size = " << windowSize << "\n";
-		auto &plotLine = plot.line();
-		legend.line(plotLine, "N=" + std::to_string(windowSize));
-		for (int overlap = windowSize; overlap >= windowSize/12; --overlap) {
-			double ratio = windowSize*1.0/overlap;
-			double failLimitDb = 17.5 - 14.5*ratio; // an eyeballed performance limit, as a smoke test
-			
-			double db = averageAliasing(windowSize, overlap);
-			plotLine.add(ratio, db);
-			
-			if (ratio <= 10) {
-				TEST_ASSERT(db < failLimitDb);
+	auto plotAliasing = [&](std::string svgFile, bool acg) {
+		STFT::Window windowShape = acg ? STFT::Window::acg : STFT::Window::kaiser;
+	
+		std::array<int, 5> windowSizes = {70, 128, 163, 257, 32*9};
+		Plot2D plot(250, 165);
+		plot.x.linear(1, 12).major(1, "").minors(2, 4, 6, 8, 10, 12).label("overlap ratio (window/interval)");
+		plot.y.linear(-150, 0).major(-150, "").minors(-140, -120, -100, -80, -60, -40, -20, 0).label("aliasing (dB)");
+		auto &legend = plot.legend(1, 1);
+		for (int windowSize : windowSizes) {
+			std::cout << "\twindow size = " << windowSize << "\n";
+			auto &line = plot.line();
+			legend.add(line, "N=" + std::to_string(windowSize));
+			for (int overlap = windowSize; overlap >= windowSize/12; --overlap) {
+				double ratio = windowSize*1.0/overlap;
+				
+				double db = averageAliasing(windowSize, overlap, windowShape);
+				line.add(ratio, db);
+
+				if (!acg) {
+					double failLimitDb = 17.5 - 14.5*ratio; // an eyeballed performance limit, as a smoke test
+					if (ratio <= 10) {
+						TEST_ASSERT(db < failLimitDb);
+					}
+				}
 			}
 		}
-	}
-	auto style = plot.defaultStyle();
-	plot.write("stft-aliasing-simulated.svg", style);
+		plot.write(svgFile);
+	};
+	plotAliasing("stft-aliasing-simulated.svg", false);
+	plotAliasing("stft-aliasing-simulated-acg.svg", true);
 }
 
