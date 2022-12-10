@@ -123,6 +123,7 @@ doxygen:
 
 publish:
 	find out -iname \*.csv -exec rm {} \;
+	find out -iname \*.o -exec rm {} \;
 	publish-signalsmith-audio /code/dsp
 	cd util && python article
 

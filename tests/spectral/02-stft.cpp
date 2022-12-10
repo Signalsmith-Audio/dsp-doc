@@ -194,22 +194,28 @@ TEST("STFT aliasing check") {
 		return 10*std::log10(sum2/repeats);
 	};
 
-	std::array<int, 4> windowSizes = {70, 128, 163, 257};
+	Plot2D plot(250, 165);
+	plot.x.linear(1, 12).major(1, "").ticks(2, 4, 6, 8, 10, 12).label("overlap ratio (window/interval)");
+	plot.y.linear(-150, 0).major(-150, "").ticks(0, -20, -40, -60, -80, -100, -120, -140).label("aliasing (dB)");
+	auto &legend = plot.legend(1, 1);
+	std::array<int, 4> windowSizes = {257, 163, 128, 70};
 	for (int windowSize : windowSizes) {
 		std::cout << "\twindow size = " << windowSize << "\n";
-		CsvWriter csv("stft-aliasing-simulated-" + std::to_string(windowSize));
-		csv.line("window", "overlap", "aliasing");
+		auto &plotLine = plot.line();
+		legend.line(plotLine, "N=" + std::to_string(windowSize));
 		for (int overlap = windowSize; overlap >= windowSize/12; --overlap) {
 			double ratio = windowSize*1.0/overlap;
 			double failLimitDb = 17.5 - 14.5*ratio; // an eyeballed performance limit, as a smoke test
 			
 			double db = averageAliasing(windowSize, overlap);
-			csv.line(windowSize, overlap, db);
+			plotLine.add(ratio, db);
 			
 			if (ratio <= 10) {
 				TEST_ASSERT(db < failLimitDb);
 			}
 		}
 	}
+	auto style = plot.defaultStyle();
+	plot.write("stft-aliasing-simulated.svg", style);
 }
 

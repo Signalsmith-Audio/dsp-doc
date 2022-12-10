@@ -175,10 +175,10 @@ namespace spectral {
 			MultiSpectrum() : MultiSpectrum(0, 0) {}
 			MultiSpectrum(int channels, int bands) : channels(channels), stride(bands), buffer(channels*bands, 0) {}
 			
-			void resize(int channels, int bands) {
-				this->channels = channels;
-				this->stride = bands;
-				buffer.assign(channels*bands, 0);
+			void resize(int nChannels, int nBands) {
+				channels = nChannels;
+				stride = nBands;
+				buffer.assign(channels*stride, 0);
 			}
 			
 			void reset() {
@@ -241,8 +241,8 @@ namespace spectral {
 		}
 
 		/// Sets the channel-count, FFT size and interval.
-		void resize(int channels, int windowSize, int interval, int historyLength=0, int zeroPadding=0) {
-			resizeInternal(channels, windowSize, interval, historyLength, zeroPadding);
+		void resize(int nChannels, int windowSize, int interval, int historyLength=0, int zeroPadding=0) {
+			resizeInternal(nChannels, windowSize, interval, historyLength, zeroPadding);
 		}
 		
 		int windowSize() const {
@@ -295,14 +295,14 @@ namespace spectral {
 					auto channel = output[c];
 
 					// Clear out the future sum, a window-length and an interval ahead
-					for (int i = _windowSize; i < _windowSize + _interval; ++i) {
-						channel[i] = 0;
+					for (int wi = _windowSize; wi < _windowSize + _interval; ++wi) {
+						channel[wi] = 0;
 					}
 
 					// Add in the IFFT'd result
 					fft.ifft(spectrum[c], timeBuffer);
-					for (int i = 0; i < _windowSize; ++i) {
-						channel[i] += timeBuffer[i];
+					for (int wi = 0; wi < _windowSize; ++wi) {
+						channel[wi] += timeBuffer[wi];
 					}
 				}
 				validUntilIndex += _interval;

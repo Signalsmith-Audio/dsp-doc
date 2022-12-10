@@ -10,15 +10,32 @@
 
 /** Expected use:
 
-	SimpleArgs args(argc, argv);
-	args.helpFlag("h"); // optional, defaults to --help
+		SimpleArgs args(argc, argv);
 
-	std::string foo = args.arg<std::string>("foo");
-	std::string bar = args.arg<std::string>("bar", "a string for Bar", "default");
+		// positional argument
+		std::string foo = args.arg<std::string>("foo");
+		// optional argument
+		std::string bar = args.arg<std::string>("bar", "a string for Bar", "default");
+		// --flag=value
+		double baz = args.flag<double>("baz", "an optional flag", 5);
+		
+		// Exits if "foo" not supplied
+		args.errorExit();
+
+	If you have multiple commands, each with their own options:
+
+		// Switches based on a command
+		if (args.command("bink", "Bink description")) {
+			// collect arguments for the command
+		}
+		// Exits with a help message (and list of commands) if no command matched
+		args.errorCommand();
+		
+	By default, a flag of "-h" (or a command of "help", if any commands are used) prints a help message.  To override:
+		SimpleArgs args(argc, argv);
+		args.helpFlag("h");
+		args.helpCommand("help");
 	
-	// Exits if "foo" not supplied.  "bar" has a default value, so it's fine to omit
-	args.errorExit();
-
 **/
 class SimpleArgs {
 	int argc;

@@ -21,20 +21,3 @@ windowAxes.set(ylabel="synthesis/analysis window")
 partialAxes.set(ylabel="effective partial-future window")
 
 figure.save("stft-windows.svg")
-
-# Simulated aliasing
-
-figure, axes = article.small()
-
-for size in [257, 163, 128, 70]:
-	columns, data = article.readCsv("stft-aliasing-simulated-%i.csv"%size)
-
-	overlapRatio = data[0]/data[1]
-	axes.plot(overlapRatio, data[2], label="N=%i"%size)
-
-#r = linspace(1, 12, 100)
-#axes.plot(r, 11.5 - 14.5*r, label="eyeballed approximation")
-#axes.plot(r, 17.5 - 14.5*r, label="eyeballed limit")
-
-axes.set(ylabel="aliasing (dB)", xlabel="overlap ratio (window/interval)", xlim=[1, 12], xticks=range(2, 14, 2), ylim=[-152, 0])
-figure.save("stft-aliasing-simulated.svg")
