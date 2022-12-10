@@ -4,6 +4,7 @@
 #include "./common.h"
 
 #include <cmath>
+#include <algorithm>
 
 namespace signalsmith {
 namespace windows {
