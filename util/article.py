@@ -15,7 +15,7 @@ def escape(text):
 	return str(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 font_prop = None
-matplotlib.rcParams['font.family'] = ['Arial', 'DejaVu Sans', 'Bitstream Vera Sans'];
+matplotlib.rcParams['font.family'] = ['Arial', 'DejaVu Sans', 'Bitstream Vera Sans']
 matplotlib.rcParams['mathtext.fontset'] = 'stixsans'
 matplotlib.rcParams['font.size'] = 12
 
@@ -62,7 +62,7 @@ def set_style(figure, axes, color=True, dashesInterleaved=True, legend_loc=None,
 			line.set_color("black")
 
 		dashIndex = styleIndex%len(dashes) if dashesInterleaved else (index//len(rgb))%len(dashes)
-		lineWidth = lineWidthMultiplier*(lineWidthPower**index)*lineWidths[dashIndex];
+		lineWidth = lineWidthMultiplier*(lineWidthPower**index)*lineWidths[dashIndex]
 		line.set_linewidth(lineWidth)
 
 		dash = dashes[dashIndex]
@@ -107,7 +107,7 @@ def set_style(figure, axes, color=True, dashesInterleaved=True, legend_loc=None,
 			axes.grid(alpha=0)
 
 def save(prefix, figure, legend_loc=0, dpi=0, styleOffset=0):
-	origDpi = dpi;
+	origDpi = dpi
 	if dpi <= 0:
 		dpi = 90
 		if "@2x.png" in prefix:
@@ -150,7 +150,7 @@ def enhanceFigure(figure, nrows=1, ncols=1):
 	def boundSave(prefix, legend_loc=0, dpi=90, styleOffset=0):
 		return save(prefix, figure, legend_loc=legend_loc, dpi=dpi, styleOffset=styleOffset)
 	def boundSubGrid(yx, size=(1, 1), **kwargs):
-		pyplot.figure(figure.number);
+		pyplot.figure(figure.number)
 		return pyplot.subplot2grid((nrows, ncols), yx, size[0], size[1], **kwargs)
 	figure.save = boundSave
 	figure.gridPlot = boundSubGrid
@@ -164,7 +164,7 @@ def small(nrows=1, ncols=1, stretch=True, *args, **kwargs):
 	return enhanceFigure(figure, nrows, ncols), axes
 
 def smallFigure(nrows=1, ncols=1, stretch=True, *args, **kwargs):
-	figure = pyplot.figure(*args, **kwargs);
+	figure = pyplot.figure(*args, **kwargs)
 	figure.set_size_inches(4.5, 3*(1 + (nrows - 1)*rowStretch*stretch))
 	return enhanceFigure(figure, nrows, ncols)
 
@@ -174,7 +174,7 @@ def medium(nrows=1, ncols=1, stretch=True, *args, **kwargs):
 	return enhanceFigure(figure), axes
 
 def mediumFigure(nrows=1, ncols=1, stretch=True, *args, **kwargs):
-	figure = pyplot.figure(*args, **kwargs);
+	figure = pyplot.figure(*args, **kwargs)
 	figure.set_size_inches(6.5, 4*(1 + (nrows - 1)*rowStretch*stretch))
 	return enhanceFigure(figure, nrows, ncols)
 
@@ -184,7 +184,7 @@ def tall(nrows=1, ncols=1, stretch=True, *args, **kwargs):
 	return enhanceFigure(figure), axes
 
 def tallFigure(nrows=1, ncols=1, stretch=True, *args, **kwargs):
-	figure = pyplot.figure(*args, **kwargs);
+	figure = pyplot.figure(*args, **kwargs)
 	figure.set_size_inches(4.5, 5.5*(1 + (nrows - 1)*rowStretch*stretch))
 	return enhanceFigure(figure, nrows, ncols)
 
@@ -194,7 +194,7 @@ def short(nrows=1, ncols=1, stretch=True, *args, **kwargs):
 	return enhanceFigure(figure), axes
 
 def shortFigure(nrows=1, ncols=1, stretch=True, *args, **kwargs):
-	figure = pyplot.figure(*args, **kwargs);
+	figure = pyplot.figure(*args, **kwargs)
 	figure.set_size_inches(7, 3*(1 + (nrows - 1)*rowStretch*stretch))
 	return enhanceFigure(figure, nrows, ncols)
 
@@ -204,7 +204,7 @@ def wide(nrows=1, ncols=1, stretch=True, *args, **kwargs):
 	return enhanceFigure(figure), axes
 
 def wideFigure(nrows=1, ncols=1, stretch=True, *args, **kwargs):
-	figure = pyplot.figure(*args, **kwargs);
+	figure = pyplot.figure(*args, **kwargs)
 	figure.set_size_inches(11, min(15, 4*(1 + (nrows - 1)*rowStretch*stretch)))
 	return enhanceFigure(figure, nrows, ncols)
 
@@ -214,7 +214,7 @@ def full(nrows=1, ncols=1, *args, **kwargs):
 	return enhanceFigure(figure), axes
 
 def fullFigure(nrows=1, ncols=1, *args, **kwargs):
-	figure = pyplot.figure(*args, **kwargs);
+	figure = pyplot.figure(*args, **kwargs)
 	figure.set_size_inches(16, 10) # Doesn't stretch, because it's page-sized
 	return enhanceFigure(figure, nrows, ncols)
 
@@ -370,9 +370,9 @@ def readCsv(filename, hasHeader=True):
 			header = csvIter.next()
 		data = numpy.asarray([[float(v) for v in row] for row in csvIter])
 		if hasHeader:
-			return header, numpy.swapaxes(data, 0, 1);
+			return header, numpy.swapaxes(data, 0, 1)
 		else:
-			return numpy.swapaxes(data, 0, 1);
+			return numpy.swapaxes(data, 0, 1)
 
 if __name__ == "__main__":
 	figure, axis = medium()
@@ -385,8 +385,8 @@ if __name__ == "__main__":
 	save("example-plots/example", figure)
 
 	with Table("example-plots/table", ["column1", "column2"], cssClass="small") as table:
-		table.add("foo", "bar");
-		table.add("baz", "bing");
+		table.add("foo", "bar")
+		table.add("baz", "bing")
 	
 	with Table("example-plots/headers",	[
 		"A",
@@ -395,5 +395,5 @@ if __name__ == "__main__":
 		["D", "Group 2"],
 		["E", "Group 2"],
 	]) as table:
-		table.add(1, 2, 3, 4, 5);
-		table.add("a", "b", "c", "d", "e");
+		table.add(1, 2, 3, 4, 5)
+		table.add("a", "b", "c", "d", "e")
