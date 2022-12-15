@@ -47,12 +47,21 @@ def fileReplace(filename, fromText, toText):
 for i in range(3):
 	fileReplace("dsp/common.h", versionDefines[i] + str(startVersion[i]), versionDefines[i] + str(version[i]))
 fileReplace("dsp/common.h", versionStringDefine%oldVersion, versionStringDefine%newVersion)
-fileReplace("Doxyfile", "PROJECT_NUMBER = " + oldVersion, "PROJECT_NUMBER = " + newVersion)
+exactVersionCheck = "SIGNALSMITH_DSP_VERSION_MAJOR == %i && SIGNALSMITH_DSP_VERSION_MINOR == %i && SIGNALSMITH_DSP_VERSION_PATCH == %i";
+fileReplace("dsp/common.h",
+	exactVersionCheck%tuple(startVersion),
+	exactVersionCheck%tuple(version))
+
 fileReplace("dsp/README.md",
 	"SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(startVersion),
 	"SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(version))
+
+fileReplace("Doxyfile", "PROJECT_NUMBER = " + oldVersion, "PROJECT_NUMBER = " + newVersion)
 fileReplace("tests/common/version.cpp",
 	"SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(startVersion),
 	"SIGNALSMITH_DSP_VERSION_CHECK(%i, %i, %i)"%tuple(version))
+fileReplace("tests/common/version.cpp",
+	"static_assert(signalsmith::version(%i, %i, %i)"%tuple(startVersion),
+	"static_assert(signalsmith::version(%i, %i, %i)"%tuple(version))
 
 print(newVersion)

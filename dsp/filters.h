@@ -1,7 +1,8 @@
+#include "./common.h"
+
 #ifndef SIGNALSMITH_DSP_FILTERS_H
 #define SIGNALSMITH_DSP_FILTERS_H
 
-#include "./common.h"
 #include "./perf.h"
 
 #include <cmath>

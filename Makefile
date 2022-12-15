@@ -136,4 +136,4 @@ publish-git:
 	git push github main:main
 	git push --tags github
 	git push release main:main
-	git tag | grep '^v[0-9]*\.[0-9]*\.[0-9]*$' | xargs git push release
+	git tag | grep "^v[0-9]*\.[0-9]*\.[0-9]*$$" | xargs git push release
