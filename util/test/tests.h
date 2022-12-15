@@ -82,6 +82,10 @@ class Test {
 	using TestFn = std::function<void(Test&)>;
 	Test *parentTest = nullptr;
 	std::string parentPrefix = "";
+	std::string totalPrefix() const {
+		if (parentTest) return parentTest->totalPrefix() + parentPrefix + ": ";
+		return "";
+	}
 
 	TestList& testList;
 	std::string codeLocation;
@@ -162,8 +166,7 @@ public:
 	template<class ...Args>
 	void log(Args ...args) {
 		std::cout << "\t";
-		if (parentTest) std::cout << parentPrefix << ": ";
-		logInner(args...);
+		logInner(totalPrefix(), args...);
 	}
 	
 	Test prefix(std::string prefix) {
