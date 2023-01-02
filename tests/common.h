@@ -1,5 +1,6 @@
-#include "csv-writer.h"
 #include "plot.h"
+
+#include "../util/csv-writer.h"
 
 #ifndef SIG_CUSTOM_PLOTS
 using Figure = signalsmith::plot::Figure;

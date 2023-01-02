@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Interactive Filter Responses</title>
+		<meta charset="UTF-8">
+
+		<link href="/style/article/dist.css" rel="stylesheet">
+		<script src="/style/article/dist.js" defer class="style-main"></script>
+	</head>
+	<body>
+		<figure>
+			<table class="aligned small" id="existing-table">
+				<tr>
+					<th>shape</th>
+					<td>
+						<select id="type">
+							<option value="0">lowpass</option>
+							<option value="1">highpass</option>
+							<option value="2">bandpass</option>
+							<option value="3">notch</option>
+							<option value="4">peak</option>
+							<option value="5">high shelf</option>
+							<option value="6">low shelf</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>design</th>
+					<td>
+						<select id="design">
+							<option value="0">bilinear</option>
+							<option value="1">cookbook</option>
+							<option value="2">oneSided</option>
+							<option value="3">vicanek</option>
+							<option value="-1" selected>all</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>logarithmic</th>
+					<td>
+						<input type="checkbox" id="logFreq" checked>
+					</td>
+				</tr>
+			</table>
+			<script src="out/main.js" onerror="alert('Failed to load compiled code')"></script>
+			<script src="wasm-api.js"></script>
+			<script>
+				WasmApi(Main, "#existing-table").range({
+					key: "frequency",
+					min: 0,
+					max: 0.5,
+					step: 0.001,
+					initial: 0.1,
+					label: "frequency"
+				}).range({
+					key: "octaves",
+					min: 0.01,
+					max: 5,
+					step: 0.001,
+					initial: 1.9,
+					label: "bandwidth"
+				}).range({
+					key: "db",
+					min: -60,
+					max: 24,
+					step: 0.001,
+					initial: -12,
+					label: "dB"
+				}).run((main, controls, first) => {
+					let power = controls.manual*controls.auto;
+					let svgText = main.filterGraph(400, 250, controls.type, controls.design, controls.frequency, controls.logFreq, controls.octaves, controls.db);
+					document.getElementById("graph-container").innerHTML = svgText;
+				});
+
+				/*
+				var $ = document.querySelector.bind(document);
+				$('#logFreq').addEventListener('change', () => {
+					let freqControl = $('#frequency');
+					let min = 0.001, max = 0.5;
+					if (!$('#logFreq').checked) {
+						let ratio = freqControl.value*2;
+						freqControl.value = Math.exp(Math.log(min) + ratio*Math.log(max/min));
+					} else {
+						freqControl.value = 0.5*Math.log(freqControl.value/min)/Math.log(max/min);
+					}
+				});
+				*/
+			</script>
+		</figure>
+		<figure>
+			<div id="graph-container"></div>
+		</figure>
+	</body>
+</html>
