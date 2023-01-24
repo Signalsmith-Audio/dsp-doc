@@ -12,6 +12,11 @@ class Stopwatch {
 		QueryPerformanceCounter(&result);
 		return result.QuadPart;
 	}
+	static double timeToSeconds(double t) {
+		LARGE_INTEGER freq;
+		QueryPerformanceFrequency(&freq);
+		return t/double(freq);
+	}
 #else
 #	include <ctime>
 class Stopwatch {
@@ -19,11 +24,15 @@ class Stopwatch {
 	inline Time now() {
 		return std::clock();
 	}
+	static double timeToSeconds(double t) {
+		return t/double(CLOCKS_PER_SEC);
+	}
 #endif
 
 	Time lapStart, lapBest, lapTotal, lapTotal2;
 	double lapOverhead = 0;
 	int lapCount = 0;
+	
 public:
 	Stopwatch(bool compensate=true) {
 		if (compensate) {
@@ -37,7 +46,11 @@ public:
 		}
 		start();
 	}
-	
+
+	static double seconds(double time) {
+		return timeToSeconds(time);
+	}
+
 	void start() {
 		lapCount = 0;
 		lapTotal = lapTotal2 = 0;
