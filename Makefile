@@ -11,8 +11,8 @@ clean:
 
 CPP_BASE := .
 ALL_H := Makefile $(shell find $(CPP_BASE) -iname \*.h)
-GCC := g++ -std=c++11 -Wall -Wextra -Wfatal-errors -g -O3 -ffast-math \
- 		-Wpedantic -pedantic-errors \
+GCC := g++ -std=c++11 -g -O3 -ffast-math -fno-rtti \
+ 		-Wall -Wextra -Wfatal-errors -Wpedantic -pedantic-errors \
 		-I "util" -I dsp/
 
 # Compile C++ object files
