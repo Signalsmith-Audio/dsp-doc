@@ -106,7 +106,7 @@ namespace windows {
 			return bw;
 		}
 		/** @brief Peak ratio (in dB) between side-lobes and the main lobe.
-			\diagram{windows-acg-sidelobe-peaks.svg,Measured main/side lobe peak ratio.  You can see that the heuristic improves performance, except in the bandwidth range 1-2 where peak ratio was sacrificed to improve total energy ratio.}
+			\diagram{windows-kaiser-sidelobe-peaks.svg,Measured main/side lobe peak ratio.  You can see that the heuristic improves performance, except in the bandwidth range 1-2 where peak ratio was sacrificed to improve total energy ratio.}
 			This function uses an approximation which is accurate to ±0.5dB for 2 ⩽ bandwidth ≤ 9, or 0.5 ⩽ bandwidth ≤ 9 when `heuristicOptimal`is enabled.
 		*/
 		static double bandwidthToPeakDb(double bandwidth, bool heuristicOptimal=false) {
