@@ -57,22 +57,6 @@ namespace perf {
 		}
 	};
 #elif (defined (__ARM_NEON) || defined (__ARM_NEON__))
-#	ifdef __arm64__
-	class StopDenormals {
-		uintptr_t status;
-	public:
-		StopDenormals() {
-			uintptr_t asmStatus;
-			asm volatile("vmrs %0, fpscr" : "=r"(asmStatus));
-			status = asmStatus = asmStatus|0x01000000U; // Flush to Zero
-			asm volatile("vmsr fpscr, %0" : : "ri"(asmStatus));
-		}
-		~StopDenormals() {
-			uintptr_t asmStatus = status;
-			asm volatile("vmsr fpscr, %0" : : "ri"(asmStatus));
-		}
-	};
-#	else
 	class StopDenormals {
 		uintptr_t status;
 	public:
@@ -87,7 +71,6 @@ namespace perf {
 			asm volatile("msr fpcr, %0" : : "ri"(asmStatus));
 		}
 	};
-#	endif
 #else
 #	if __cplusplus >= 202302L
 # 		warning "The `StopDenormals` class doesn't do anything for this architecture"
