@@ -74,7 +74,7 @@ TEST("STFT window sanity-check") {
 		int intervals[] = {191, 130, 96, 55, 32};
 		constexpr int intervalCount = sizeof(intervals)/sizeof(intervals[0]);
 
-		std::vector<std::vector<double>> windows, partialWindows;
+		std::vector<std::vector<double>> windows, partialWindows, partialWindowsNext;
 		for (int i = 0; i < intervalCount; ++i) {
 			int interval = intervals[i];
 			stft.resize(1, windowSize, interval);
@@ -97,6 +97,7 @@ TEST("STFT window sanity-check") {
 			
 			windows.push_back(stft.window());
 			partialWindows.push_back(stft.partialSumWindow());
+			partialWindowsNext.push_back(stft.partialSumWindow(false));
 		}
 		for (int i = 0; i < windowSize; ++i) {
 			for (int j = 0; j < intervalCount; ++j) {
@@ -104,6 +105,8 @@ TEST("STFT window sanity-check") {
 				if (i > 0) {
 					TEST_ASSERT(partialWindows[j][i] <= partialWindows[j][i - 1] + fudge); // Monotonically decreasing the whole way
 				}
+				double diff = partialWindows[j][i] - windows[j][i]*windows[j][i] - partialWindowsNext[j][i];
+				TEST_ASSERT(std::abs(diff) < fudge); // passing `false` omits the first window
 			}
 		}
 	};
