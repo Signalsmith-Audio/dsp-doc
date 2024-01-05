@@ -3,6 +3,8 @@
 
 #include <limits>
 #include <cmath>
+#include <atomic>
+
 #ifdef WINDOWS // completely untested!
 #	include <windows.h>
 class Stopwatch {
@@ -29,7 +31,8 @@ class Stopwatch {
 	}
 #endif
 
-	Time lapStart, lapBest, lapTotal, lapTotal2;
+	std::atomic<Time> lapStart; // the atomic store/load should act as barriers for reordering operations
+	Time lapBest, lapTotal, lapTotal2;
 	double lapOverhead = 0;
 	int lapCount = 0;
 	
@@ -58,10 +61,11 @@ public:
 		startLap();
 	}
 	void startLap() {
-		lapStart = now();
+		lapStart.store(now());
 	}
-	void lap() {
-		auto diff = now() - lapStart;
+	double lap() {
+		auto start = lapStart.load();
+		auto diff = now() - start;
 
 		if (diff < lapBest) lapBest = diff;
 		lapCount++;
@@ -69,6 +73,7 @@ public:
 		lapTotal2 += diff*diff;
 
 		startLap();
+		return diff;
 	}
 	double total() const {
 		return std::max(0.0, lapTotal - lapCount*lapOverhead);
