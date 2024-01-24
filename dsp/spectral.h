@@ -59,7 +59,7 @@ namespace spectral {
 			fftWindow.assign(size, 1);
 			timeBuffer.resize(size);
 			offsetSamples = rotateSamples;
-			if (offsetSamples < 0) offsetSamples += size;
+			if (offsetSamples < 0) offsetSamples += size; // TODO: for a negative rotation, the other half of the result is inverted
 			return fftWindow;
 		}
 		/// Sets the FFT size, with a user-defined functor for the window
