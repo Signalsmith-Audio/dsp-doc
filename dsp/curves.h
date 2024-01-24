@@ -243,6 +243,10 @@ namespace curves {
 		Sample inverse(Sample y) const {
 			return (c*y - a)/(b - d*y);
 		}
+		Sample dx(Sample x) const {
+			Sample l = (c + d*x);
+			return (b*c - a*d)/(l*l);
+		}
 		
 		/// Combine two `Reciprocal`s together in sequence
 		Reciprocal then(const Reciprocal &other) const {
