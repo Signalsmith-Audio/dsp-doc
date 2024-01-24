@@ -9,7 +9,6 @@
 #include "./delay.h"
 
 #include <cmath>
-#include <algorithm>
 
 namespace signalsmith {
 namespace spectral {
@@ -79,7 +78,7 @@ namespace spectral {
 			setSize(size, [](double x) {
 				double phase = 2*M_PI*x;
 				// Blackman-Harris
-				return 0.35875 + 0.48829*std::cos(phase) + 0.14128*std::cos(phase*2) + 0.1168*std::cos(phase*3);
+				return 0.35875 - 0.48829*std::cos(phase) + 0.14128*std::cos(phase*2) - 0.01168*std::cos(phase*3);
 			}, Sample(0.5), rotateSamples);
 		}
 
@@ -94,12 +93,12 @@ namespace spectral {
 		template<class Input, class Output>
 		void fft(Input &&input, Output &&output) {
 			int fftSize = size();
-			for (int i = 0; i < fftSize; ++i) {
-				timeBuffer[i] = input[i]*fftWindow[i];
+			for (int i = 0; i < offsetSamples; ++i) {
+				// Inverted polarity since we're using the MRFFT
+				timeBuffer[i + fftSize - offsetSamples] = -input[i]*fftWindow[i];
 			}
-			
-			if (offsetSamples) {
-				std::rotate(timeBuffer.begin(), timeBuffer.begin() + offsetSamples, timeBuffer.end());
+			for (int i = offsetSamples; i < fftSize; ++i) {
+				timeBuffer[i - offsetSamples] = input[i]*fftWindow[i];
 			}
 			mrfft.fft(timeBuffer, output);
 		}
@@ -113,14 +112,15 @@ namespace spectral {
 		template<class Input, class Output>
 		void ifft(Input &&input, Output &&output) {
 			mrfft.ifft(input, timeBuffer);
-			if (offsetSamples) {
-				std::rotate(timeBuffer.rbegin(), timeBuffer.rbegin() + offsetSamples, timeBuffer.rend());
-			}
-
 			int fftSize = mrfft.size();
 			Sample norm = 1/(Sample)fftSize;
-			for (int i = 0; i < fftSize; ++i) {
-				output[i] = timeBuffer[i]*norm*fftWindow[i];
+
+			for (int i = 0; i < offsetSamples; ++i) {
+				// Inverted polarity since we're using the MRFFT
+				output[i] = -timeBuffer[i + fftSize - offsetSamples]*norm*fftWindow[i];
+			}
+			for (int i = offsetSamples; i < fftSize; ++i) {
+				output[i] = timeBuffer[i - offsetSamples]*norm*fftWindow[i];
 			}
 		}
 		/// Performs an IFFT (no windowing or rotation)

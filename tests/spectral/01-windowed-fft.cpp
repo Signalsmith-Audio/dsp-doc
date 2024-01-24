@@ -1,5 +1,8 @@
 #include "spectral.h"
 
+// common test stuff (including plots)
+#include "../common.h"
+
 // from the shared library
 #include <complex>
 #include <cmath>
@@ -79,5 +82,50 @@ TEST("Inverse, with windowing") {
 	for (int i = 0; i < fftSize; ++i) {
 		double hann = windowHann((i + offset)/fftSize);
 		if (!test.closeEnough(output[i], time[i]*hann*hann, "double-Hann windowed result", 1e-10)) return;
+	}
+}
+
+TEST("Windowed FFT: time-domain rotation") {
+	int fftSize = 256;
+	int rotate = 101;
+	
+	signalsmith::spectral::WindowedFFT<float> fft;
+	fft.setSize(fftSize);
+	auto &window = fft.window();
+
+	signalsmith::spectral::WindowedFFT<float> rotatedFft;
+	rotatedFft.setSize(fftSize, rotate);
+	
+	int harmonic = 5;
+	std::vector<float> time(fftSize), rotatedTime(fftSize), inverseTime(fftSize);
+	for (int i = 0; i < fftSize; ++i) {
+		double phase = 2*M_PI*(harmonic + 0.5)*i/fftSize;
+		time[i] = std::sin(phase)*2;
+	}
+	for (int i = 0; i < fftSize; ++i) {
+		int i2 = (i + rotate)%fftSize;
+		rotatedTime[i] = time[i2];
+		rotatedTime[i] *= window[i2];
+		if (i > fftSize - rotate) rotatedTime[i] *= -1;
+	}
+
+	std::vector<std::complex<float>> freq(fftSize/2), rotatedFreq(fftSize/2);
+	
+	fft.fftRaw(rotatedTime, freq);
+	rotatedFft.fft(time, rotatedFreq);
+
+	for (int b = 0; b < fftSize/2; ++b) {
+		test.closeEnough(freq[b], rotatedFreq[b], "fft(rotatedTime) should equal rotatedFft(time)");
+	}
+	
+	fft.ifftRaw(freq, inverseTime);
+	for (auto &s : inverseTime) s /= fftSize; // the raw one has no scaling
+	for (int i = 0; i < fftSize; ++i) {
+		test.closeEnough(inverseTime[i], rotatedTime[i], "unrotated inverse should match rotated input", 1e-4);
+	}
+
+	rotatedFft.ifft(freq, inverseTime);
+	for (int i = 0; i < fftSize; ++i) {
+		test.closeEnough(inverseTime[i], time[i]*window[i]*window[i], "rotated inverse should match unrotated input", 1e-4);
 	}
 }
