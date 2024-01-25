@@ -1,6 +1,6 @@
 #include "delay.h" // Anything that includes "common.h" should do
 
-SIGNALSMITH_DSP_VERSION_CHECK(1, 5, 0)
+SIGNALSMITH_DSP_VERSION_CHECK(1, 5, 1)
 
 // Test with some compatible earlier versions
 SIGNALSMITH_DSP_VERSION_CHECK(
