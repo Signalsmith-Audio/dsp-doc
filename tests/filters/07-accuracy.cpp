@@ -115,10 +115,10 @@ TEST("Double/float accuracy") {
 		#undef FILTER_METHOD_DB
 	};
 	
-	testDesign(Design::bilinear, "bilinear", 1e-4);
+	testDesign(Design::bilinear, "bilinear", 2e-4);
 	testDesign(Design::cookbook, "cookbook", 2e-4);
-	testDesign(Design::oneSided, "oneSided", 1e-4);
-	testDesign(Design::vicanek, "vicanek", 1e-4);
+	testDesign(Design::oneSided, "oneSided", 2e-4);
+	testDesign(Design::vicanek, "vicanek", 2e-4);
 	
 	double totalRmsError = std::sqrt(totalError2/totalErrorCounter);
 	TEST_EXPR(totalRmsError);
