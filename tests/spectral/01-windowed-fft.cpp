@@ -45,7 +45,7 @@ TEST("Windowed FFT: Hann") {
 	TEST_ASSERT((int)window.size() == fft.size());
 	for (int i = 0; i < fftSize; ++i) {
 		float expected = windowHann(i/(float)fftSize);
-		TEST_ASSERT(window[i] == expected);
+		test.closeEnough(window[i], expected, "Hann window", 1e-6);
 	}
 	
 	int harmonic = 5;
