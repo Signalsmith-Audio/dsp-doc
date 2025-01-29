@@ -120,6 +120,7 @@ release-%: bump-% release
 	
 doxygen:
 	doxygen Doxyfile-local
+	cp html/topics.html html/modules.html
 
 publish:
 	find out -iname \*.csv -exec rm {} \;

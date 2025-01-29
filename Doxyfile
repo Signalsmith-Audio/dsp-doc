@@ -5,5 +5,6 @@ PROJECT_BRIEF = Useful C++ classes/templates for audio effects
 OUTPUT_DIRECTORY = .
 
 INPUT = dsp/
+USE_MDFILE_AS_MAINPAGE = dsp/README.md
 
 IMAGE_PATH = manual/diagrams out/analysis
