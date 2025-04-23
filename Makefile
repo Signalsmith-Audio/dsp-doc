@@ -109,12 +109,13 @@ historical-docs:
 release: historical-docs publish publish-git
 
 # bump-patch, bump-minor, bump-major
-bump-%: clean all
+bump-%: clean all doxygen
 	@VERSION=$$(python version.py bump-$*) ; \
 		git commit -a -m "Release v$$VERSION" -e && \
 		git tag "dev-v$$VERSION" && \
 		./git-sub-branch dsp main && \
-		git tag "v$$VERSION" main ;
+		git tag "v$$VERSION" main && \
+		cp -r html v$$VERSION
 
 release-%: bump-% release
 	
