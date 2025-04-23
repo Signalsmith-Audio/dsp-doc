@@ -120,7 +120,7 @@ release-%: bump-% release
 	
 doxygen:
 	doxygen Doxyfile-local
-	cp html/topics.html html/modules.html
+	cp html/topics.html html/modules.html || echo "Old Doxygen version"
 
 publish:
 	find out -iname \*.csv -exec rm {} \;
