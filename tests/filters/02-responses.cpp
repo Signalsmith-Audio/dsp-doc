@@ -53,3 +53,18 @@ TEST("Responses") {
 	filter.lowShelf(test.random(0.01, 0.49), test.random(0.25, 4), test.random(0.5, 4));
 	if (test.success) testResponse(test, filter);
 }
+
+TEST("Copying response/coeffs") {
+	signalsmith::filters::BiquadStatic<float> filterA, filterB;
+	
+	filterA.lowpassQ(0.2, 4);
+	filterB(1);
+	
+	filterB.copyFrom(filterA);
+	// Response is copied exactly
+	for (float f = 0; f < 0.5; f += 0.01) {
+		TEST_ASSERT(filterA.response(f) == filterB.response(f));
+	}
+	// But not the state
+	TEST_ASSERT(filterA(0) != filterB(0));
+}
