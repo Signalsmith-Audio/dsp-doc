@@ -15,7 +15,7 @@ def escape(text):
 	return str(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 font_prop = None
-matplotlib.rcParams['font.family'] = ['Arial', 'DejaVu Sans', 'Bitstream Vera Sans']
+matplotlib.rcParams['font.family'] = ['Arial', 'DejaVu Sans']
 matplotlib.rcParams['mathtext.fontset'] = 'stixsans'
 matplotlib.rcParams['font.size'] = 12
 
@@ -367,7 +367,7 @@ def readCsv(filename, hasHeader=True):
 		csvIter = csv.reader(csvFile, delimiter=",")
 		header = None
 		if hasHeader:
-			header = csvIter.next()
+			header = next(csvIter)
 		data = numpy.asarray([[float(v) for v in row] for row in csvIter])
 		if hasHeader:
 			return header, numpy.swapaxes(data, 0, 1)

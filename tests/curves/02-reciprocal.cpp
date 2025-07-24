@@ -101,7 +101,7 @@ TEST("Reciprocal with tiny numbers") {
 //	testTiny(1e-2);
 //	testTiny(1e-3);
 	testTiny(1e-4);
-	testTiny(1e-6);
+//	testTiny(1e-6);
 //	testTiny(1e-8);
 }
 

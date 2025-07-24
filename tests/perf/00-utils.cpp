@@ -8,7 +8,7 @@
 #include <complex>
 
 template<typename Sample>
-void testComplex(Test &test) {
+void testComplex(Test &test, Sample errorLimit=1e-5) {
 	using Complex = std::complex<Sample>;
 	auto rand = [&](){return Sample(test.random(-100, 100));};
 
@@ -17,12 +17,22 @@ void testComplex(Test &test) {
 		Complex a = {rand(), rand()};
 		Complex b = {rand(), rand()};
 		
-		if (a*b != signalsmith::perf::mul(a, b)) return test.fail("multiplication");
-		if (a*std::conj(b) != signalsmith::perf::mul<true>(a, b)) return test.fail("multiplication");
+		{
+			auto expected = a*b;
+			auto actual = signalsmith::perf::mul(a, b);
+			auto limit = errorLimit*(std::abs(expected) + Sample(1e-2));
+			if (std::abs(expected - actual) > limit) return test.fail("multiplication");
+		}
+		{
+			auto expected = a*std::conj(b);
+			auto actual = signalsmith::perf::mul<true>(a, b);
+			auto limit = errorLimit*(std::abs(expected) + Sample(1e-2));
+			if (std::abs(expected - actual) > limit) return test.fail("conjugate multiplication");
+		}
 	}
 }
 
 TEST("Complex multiplcation") {
-	testComplex<float>(test);
-	testComplex<double>(test);
+	testComplex<float>(test, 1e-6);
+	testComplex<double>(test, 1e-12);
 }

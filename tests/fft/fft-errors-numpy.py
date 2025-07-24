@@ -38,8 +38,8 @@ for size in range(1, 16):
 size = 16
 while size <= 2**16:
 	testSize(size)
-	testSize(size*5/4)
-	testSize(size*3/2)
+	testSize(size*5//4)
+	testSize(size*3//2)
 	size *= 2
 	
 #### Plot the results

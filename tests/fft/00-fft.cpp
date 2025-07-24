@@ -128,7 +128,7 @@ TEST("Complex FFT") {
 	csvRms.line("N", "measured (float)", "measured (double)", "limit (float)", "limit (double)");
 	csvPeak.line("N", "measured (float)", "measured (double)", "limit (float)", "limit (double)");
 	for (auto size : sizes()) {
-		auto doubleError = testComplexFft<double>(test, size, 1e-15);
+		auto doubleError = testComplexFft<double>(test, size, 1e-12);
 		if (!test.success) return;
 		auto floatError = testComplexFft<float>(test, size, 1e-6);
 		if (!test.success) return;

@@ -11,7 +11,7 @@ clean:
 
 CPP_BASE := .
 ALL_H := Makefile $(shell find $(CPP_BASE) -iname \*.h)
-GCC := g++ -std=c++11 -g -O3 -ffast-math -fno-rtti \
+GCC := g++ -std=c++11 -g -O3 -fno-rtti \
  		-Wall -Wextra -Wfatal-errors -Wpedantic -pedantic-errors \
 		-I "util" -I dsp/
 
@@ -43,7 +43,7 @@ TEST_CPP_O_FILES := $(patsubst %, out/%.o, $(TEST_CPP_FILES))
 test: out/test
 	mkdir -p out/analysis
 	cd out/analysis && ../test
-	cd out/analysis && find ../../tests -iname \*.py -print0 | xargs -0 -n1 python
+	cd out/analysis && find ../../tests -iname \*.py -print0 | xargs -0 -n1 python3
 
 out/test: out/util/test/main.cpp.o $(TEST_CPP_O_FILES)
 	@TEST_OPP_FILES=$$(find out/tests -iname "*.cpp.o" | sort) ;\
@@ -61,7 +61,7 @@ windows:
 test-% : out/test-%
 	mkdir -p out/analysis
 	cd out/analysis && ../test-$*
-	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python
+	cd out/analysis && find ../../tests/$* -iname \*.py -print0 | xargs -0 -n1 python3
 
 out/test-%: out/util/test/main.cpp.o
 	@# A slight hack: we find the .cpp files, get a list of .o files, and call "make" again
@@ -76,10 +76,10 @@ out/test-%: out/util/test/main.cpp.o
 benchmark-% : out/benchmark-%
 	mkdir -p out/benchmarks
 	cd out/benchmarks && ../benchmark-$*
-	cd out/benchmarks && find ../../benchmarks/$* -iname \*.py -print0 | xargs -0 -n1 python
+	cd out/benchmarks && find ../../benchmarks/$* -iname \*.py -print0 | xargs -0 -n1 python3
 
 benchmarkpy-%:
-	cd out/benchmarks && find ../../benchmarks/$* -iname \*.py -print0 | xargs -0 -n1 python
+	cd out/benchmarks && find ../../benchmarks/$* -iname \*.py -print0 | xargs -0 -n1 python3
 
 
 out/benchmark-%: out/util/test/main.opp
@@ -110,7 +110,7 @@ release: historical-docs publish publish-git
 
 # bump-patch, bump-minor, bump-major
 bump-%: clean all doxygen
-	@VERSION=$$(python version.py bump-$*) ; \
+	@VERSION=$$(python3 version.py bump-$*) ; \
 		git commit -a -m "Release v$$VERSION" -e && \
 		git tag "dev-v$$VERSION" && \
 		./git-sub-branch dsp main && \
@@ -127,7 +127,7 @@ publish:
 	find out -iname \*.csv -exec rm {} \;
 	find out -iname \*.o -exec rm {} \;
 	publish-signalsmith-audio /code/dsp
-	cd util && python article
+	cd util && python3 article
 
 publish-git:
 	# Self-hosted

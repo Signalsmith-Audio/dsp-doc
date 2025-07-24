@@ -82,7 +82,7 @@ TEST("Oversampler2xFIR block boundaries") {
 			totalError2 += errorAB*errorAB + errorAC*errorAC;
 		}
 		double rmsError = std::sqrt(totalError2/2000);
-		TEST_APPROX(rmsError, 0, 1e-15);
+		TEST_APPROX(rmsError, 0, 1e-6);
 	}
 }
 

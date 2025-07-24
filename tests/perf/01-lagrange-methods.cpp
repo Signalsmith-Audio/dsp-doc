@@ -173,7 +173,10 @@ static double measureInterpolator(Test &test, bool testAgainstReference) {
 		for (double d : delayTimes) {
 			double expected = reference.fractional(buffer, d);
 			double actual = interpolator.fractional(buffer, d);
-			if (!test.closeEnough(actual, expected, "actual ~= expected", 1e-4)) {
+			double diff = std::abs(expected - actual);
+			if (diff >= 1e-4) {
+				LOG_EXPR(expected);
+				LOG_EXPR(actual);
 				std::cout << actual << " != " << expected << "\n";
 				return -1e10;
 			}

@@ -29,6 +29,7 @@ do
 	cp extra-style.js "$tag/"
 done
 
+echo "final clean test/doxygen"
 if make clean test doxygen
 then
 	cp extra-style.js html/
