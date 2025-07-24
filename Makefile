@@ -131,7 +131,15 @@ publish:
 
 publish-git:
 	# Self-hosted
-	git checkout main && publish-signalsmith-git /code/dsp.git
+	rm -rf tmp-dsp
+	git clone -b main --single-branch . tmp-dsp
+	cd tmp-dsp; mv .git/objects/pack/*.pack ./
+	cd tmp-dsp; cat *.pack | git unpack-objects
+	rm tmp-dsp/.git/refs/tags/dev-*
+	cd tmp-dsp; rm -f *.pack && publish-signalsmith-git /code/dsp.git;
+	du -sh tmp-dsp/.git
+	du -sh .git
+	rm -rf tmp-dsp
 	git checkout dev && publish-signalsmith-git /code/dsp-doc.git ../dsp/
 	# GitHub
 	git push github

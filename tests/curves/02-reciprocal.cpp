@@ -78,6 +78,33 @@ TEST("Reciprocal compose") {
 	}
 }
 
+TEST("Reciprocal with tiny numbers") {
+	auto testTiny = [&](float tiny) {
+		float offsetX = 1, offsetY = 1;
+		float x0 = offsetX - tiny, xm = offsetX, x1 = offsetX + tiny;
+		float y0 = offsetY - tiny, ym = offsetY + tiny/10, y1 = offsetY + tiny;
+		// Numerical errors are kinda expected, so we give it *some* leeway
+		float yLow = offsetY - tiny*10, yHigh = offsetY + tiny*10;
+		signalsmith::curves::Reciprocal<float> reciprocal(x0, xm, x1, y0, ym, y1);
+
+		size_t N = 100;
+		for (size_t n = 0; n < N; ++n) {
+			float x = x0 + (x1 - x0)*(n + 0.5)/N;
+			float y = reciprocal(x);
+			LOG_EXPR(x);
+			LOG_EXPR(y);
+
+			TEST_ASSERT(y >= yLow);
+			TEST_ASSERT(y <= yHigh);
+		}
+	};
+//	testTiny(1e-2);
+//	testTiny(1e-3);
+	testTiny(1e-4);
+	testTiny(1e-6);
+//	testTiny(1e-8);
+}
+
 TEST("Reciprocal (example)") {
 	Plot2D plot(200, 200);
 	plot.x.linear(-2, 1).major(-2, "").label("input");
