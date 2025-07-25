@@ -17,6 +17,122 @@ namespace filters {
 		@file
 	*/
 	
+	template<class Sample>
+	struct ComplexPole {
+		using Complex = std::complex<Sample>;
+
+		void operator=(Complex a) {
+			a1 = a;
+		}
+
+		void reset() {
+			state = 0;
+		}
+		
+		Complex operator()(Sample x) {
+			return state = state*a1 + x;
+		}
+		Complex operator()(Complex x) {
+			return state = state*a1 + x;
+		}
+
+		Complex responseZ(Complex z) const {
+			return z/(z - a1);
+		}
+	private:
+		Complex state = 0;
+		Complex a1 = 0;
+	};
+	
+	template<class Sample>
+	struct Filter2 {
+		using Complex = std::complex<Sample>;
+		static constexpr Sample defaultQ = 0.7071067811865476; // sqrt(0.5)
+		static constexpr Sample defaultBandwidth = 1.8999686269529916; // equivalent to above Q
+	
+		void reset() {
+			pole.reset();
+		}
+		
+		Sample operator()(Sample x) {
+			return x*dry + pole(x*gain).real();
+		}
+		
+		Complex responseZ(Complex z) const {
+			return dry
+				+ Sample(0.5)*pole.responseZ(z)*gain
+				+ Sample(0.5)*std::conj(pole.responseZ(std::conj(z))*gain);
+		}
+		Complex response(Sample f) const {
+			return responseZ(std::polar(Sample(1), -f*Sample(2*M_PI)));
+		}
+		Sample responseDb(Sample f) const {
+			return 10*std::log10(std::norm(response(f)) + Sample(1e-30));
+		}
+		
+		Filter2 & poleZeroGain(Complex p, Complex z, Sample g) {
+			pole = p;
+			// To get these calculations, rearrange this:
+			// 	dry + 0.5*gain/(1 - P*z^-1) + 0.5*conj(gain)/(1 - conj(P)*z^-1)
+			// into A(z)/B(z) form, and compare with the classic discrete biquad version
+			dry = g*std::norm(z)/std::norm(p);
+			Sample gainR = g - dry;
+			Sample gainI = (2*g*z.real() - (2*dry + gainR)*p.real())/p.imag();
+			gain = {gainR, gainI};
+			return *this;
+		}
+
+		Filter2 & lowpassQ(Sample f, Sample q) {
+			Sample angF = f*Sample(2*M_PI);
+
+			// Pole taken via IIT
+			Sample logAr = Sample(0.5)/q;
+			Sample logAi = std::sqrt(1 - logAr*logAr);
+			Complex logA{logAr, logAi};
+			
+			// Bilinear transform
+			Complex biquadP = (Sample(1) + logA*angF*Sample(0.5))/(Sample(1) - logA*angF*Sample(0.5));
+			Sample invR0 = (1 - 2*biquadP.real() + std::norm(biquadP))/4;
+			
+			return poleZeroGain(biquadP, -1, invR0);
+
+			Complex A = std::exp(logA*angF);
+
+			// Cutoff in z-plane
+			Complex w = std::polar(Sample(1), angF);
+
+			// response at w = dry + gain*X + conj(gain)*Y
+			Complex X = Sample(0.5)/(Sample(1) - A*std::conj(w));
+			Complex Y = Sample(0.5)/(Sample(1) - std::conj(A)*std::conj(w));
+			// response at 1 = dry + gain*O + conj(gain)*conj(O)
+			Complex O = Sample(0.5)/(Sample(1) - A);
+			
+			Sample H0 = 1; // Response at f=0, always real
+			Sample Hwr = 0, Hwi = 0.5*q; // chosen response at cutoff w: iQ for lowpass
+
+			// Simultaneous equations:
+			// Hwr - H0 = gr*(Xr + Yr - 2*Or) + gi(-Xi + Yi - 2Oi);
+			// Hwi = gr*(Xi + Yi) + gi*(Xr - Yr);
+			// Phrase as a matrix
+			Sample mA = X.real() + Y.real() - 2*O.real();
+			Sample mB = -X.imag() + Y.imag() - 2*O.imag();
+			Sample mC = X.imag() + Y.imag();
+			Sample mD = X.real() - Y.real();
+			Sample mInvDet = 1/(mA*mD - mB*mC);
+			Sample gr = mInvDet*((Hwr - H0)*mD - Hwi*mB);
+			Sample gi = mInvDet*((Hwr - H0)*-mC + Hwi*mA);
+			// And that's our gain!
+			gain = {gr, gi};
+			
+			dry = H0 - 2*(gr*O.real() - gi*O.imag());
+			return *this;
+		}
+	private:
+		ComplexPole<Sample> pole;
+		Complex gain = 1;
+		Sample dry = 0;
+	};
+	
 	/** Filter design methods.
 		These differ mostly in how they handle frequency-warping near Nyquist:
 		\diagram{filters-lowpass.svg}
