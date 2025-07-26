@@ -77,8 +77,8 @@ namespace filters {
 			if (alwaysComplex || poleIsComplex) {
 				return x*dry + pole(x*gain).real();
 			} else {
-				auto pair = pole.realPair(x*gain);
-				return x*dry + Sample(0.5)*(pair.real() + pair.imag());
+				auto pair = pole.realPair(x);
+				return x*dry + Sample(0.5)*(pair.real()*gain.real() + pair.imag()*gain.imag());
 			}
 		}
 		
