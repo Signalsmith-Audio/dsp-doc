@@ -17,6 +17,9 @@ namespace filters {
 		@file
 	*/
 	
+	template<class Sample, bool alwaysComplex=false>
+	struct Filter2;
+
 	template<class Sample>
 	struct ComplexPole {
 		using Complex = std::complex<Sample>;
@@ -35,42 +38,70 @@ namespace filters {
 		Complex operator()(Complex x) {
 			return state = state*a1 + x;
 		}
+		
+		Complex realPair(Sample x) {
+			return state = {
+				state.real()*a1.real() + x,
+				state.imag()*a1.imag() + x
+			};
+		}
 
 		Complex responseZ(Complex z) const {
 			return z/(z - a1);
 		}
+		Complex responseReal1(Complex z) const {
+			return z/(z - a1.real());
+		}
+		Complex responseReal2(Complex z) const {
+			return z/(z - a1.imag());
+		}
 	private:
+		friend struct Filter2<Sample, false>;
+		friend struct Filter2<Sample, true>;
 		Complex state = 0;
 		Complex a1 = 0;
 	};
 	
-	template<class Sample>
+	template<class Sample, bool alwaysComplex>
 	struct Filter2 {
 		using Complex = std::complex<Sample>;
 		static constexpr Sample defaultQ = 0.7071067811865476; // sqrt(0.5)
 		static constexpr Sample defaultBandwidth = 1.8999686269529916; // equivalent to above Q
+		static constexpr Sample maxRefFreq = 0.35;
 	
 		void reset() {
 			pole.reset();
 		}
 		
 		Sample operator()(Sample x) {
-			return x*dry + pole(x*gain).real();
+			if (alwaysComplex || poleIsComplex) {
+				return x*dry + pole(x*gain).real();
+			} else {
+				auto pair = pole.realPair(x*gain);
+				return x*dry + Sample(0.5)*(pair.real() + pair.imag());
+			}
 		}
 		
 		Complex responseZ(Complex z) const {
-			return dry
-				+ Sample(0.5)*pole.responseZ(z)*gain
-				+ Sample(0.5)*std::conj(pole.responseZ(std::conj(z))*gain);
+			if (alwaysComplex || poleIsComplex) {
+				return dry
+					+ Sample(0.5)*pole.responseZ(z)*gain
+					+ Sample(0.5)*std::conj(pole.responseZ(std::conj(z))*gain);
+			} else {
+				return dry
+					+ Sample(0.5)*gain.real()*pole.responseReal1(z)
+					+ Sample(0.5)*gain.imag()*pole.responseReal2(z);
+			}
 		}
 		Complex response(Sample f) const {
-			return responseZ(std::polar(Sample(1), -f*Sample(2*M_PI)));
+			return responseZ(std::polar(Sample(1), f*Sample(2*M_PI)));
 		}
 		Sample responseDb(Sample f) const {
 			return 10*std::log10(std::norm(response(f)) + Sample(1e-30));
 		}
 		
-		Filter2 & poleZeroGain(Complex p, Complex z, Sample g) {
+		Filter2 & setPoleZeroGain(Complex p, Complex z, Sample g) {
+			poleIsComplex = true;
 			pole = p;
 			// To get these calculations, rearrange this:
 			// 	dry + 0.5*gain/(1 - P*z^-1) + 0.5*conj(gain)/(1 - conj(P)*z^-1)
@@ -81,41 +112,25 @@ namespace filters {
 			gain = {gainR, gainI};
 			return *this;
 		}
+		Filter2 & setPoleCutoffComplex(Complex p, Complex w, Sample gain0, Complex gainW) {
+			poleIsComplex = true;
+			pole = p;
+			Complex A = p;
+			Sample H0 = gain0; // Response at f=0, always real
+			Sample Hwr = gainW.real(), Hwi = gainW.imag(); // chosen response at cutoff w
 
-		Filter2 & lowpassQ(Sample f, Sample q) {
-			Sample angF = f*Sample(2*M_PI);
-
-			// Pole taken via IIT
-			Sample logAr = Sample(0.5)/q;
-			Sample logAi = std::sqrt(1 - logAr*logAr);
-			Complex logA{logAr, logAi};
-			
-			// Bilinear transform
-			Complex biquadP = (Sample(1) + logA*angF*Sample(0.5))/(Sample(1) - logA*angF*Sample(0.5));
-			Sample invR0 = (1 - 2*biquadP.real() + std::norm(biquadP))/4;
-			
-			return poleZeroGain(biquadP, -1, invR0);
-
-			Complex A = std::exp(logA*angF);
-
-			// Cutoff in z-plane
-			Complex w = std::polar(Sample(1), angF);
-
-			// response at w = dry + gain*X + conj(gain)*Y
+			// response at w: dry + gain*X + conj(gain)*Y
 			Complex X = Sample(0.5)/(Sample(1) - A*std::conj(w));
 			Complex Y = Sample(0.5)/(Sample(1) - std::conj(A)*std::conj(w));
-			// response at 1 = dry + gain*O + conj(gain)*conj(O)
+			// response at 1 (f=0): dry + gain*O + conj(gain)*conj(O)
 			Complex O = Sample(0.5)/(Sample(1) - A);
 			
-			Sample H0 = 1; // Response at f=0, always real
-			Sample Hwr = 0, Hwi = 0.5*q; // chosen response at cutoff w: iQ for lowpass
-
-			// Simultaneous equations:
-			// Hwr - H0 = gr*(Xr + Yr - 2*Or) + gi(-Xi + Yi - 2Oi);
-			// Hwi = gr*(Xi + Yi) + gi*(Xr - Yr);
-			// Phrase as a matrix
+			// Simultaneous equations from the difference between those two:
+			// 	Hwr - H0 = gr*(Xr + Yr - 2*Or) + gi(-Xi + Yi + 2*Oi);
+			// 	Hwi = gr*(Xi + Yi) + gi*(Xr - Yr);
+			// Phrase as a matrix [[a b] [c d]] * [gr gi]
 			Sample mA = X.real() + Y.real() - 2*O.real();
-			Sample mB = -X.imag() + Y.imag() - 2*O.imag();
+			Sample mB = -X.imag() + Y.imag() + 2*O.imag();
 			Sample mC = X.imag() + Y.imag();
 			Sample mD = X.real() - Y.real();
 			Sample mInvDet = 1/(mA*mD - mB*mC);
@@ -127,8 +142,119 @@ namespace filters {
 			dry = H0 - 2*(gr*O.real() - gi*O.imag());
 			return *this;
 		}
+		Filter2 & setPoleCutoffRealPair(Complex p, Complex w, Sample gain0, Complex gainW) {
+			poleIsComplex = false; // TODO: if changed, figure out how to map state as our poles turn the corner.  Averaging (real) seems fair - but then is there a way to phrase the real-poles state such that it's already like that
+			pole = p;
+			Complex A = p;
+			Sample H0 = gain0; // Response at f=0, always real
+			Sample Hwr = gainW.real(), Hwi = gainW.imag(); // chosen response at cutoff w
+
+			// Two real poles: call them p1/p2, with gains g1/g2
+			// response at w: dry + g1*X + g2*Y
+			Complex X = Sample(0.5)/(Sample(1) - A.real()*std::conj(w));
+			Complex Y = Sample(0.5)/(Sample(1) - A.imag()*std::conj(w));
+			// response at 1 (f=0): dry + g1*Or + g2*Oi
+			Complex O = {
+				Sample(0.5)/(Sample(1) - A.real()),
+				Sample(0.5)/(Sample(1) - A.imag())
+			};
+			
+			// Simultaneous equations from the difference between those two:
+			// 	Hwr - H0 = g1*(Xr - Or) + g2(Yr - Oi);
+			// 	Hwi = g1*Xi + g2*Yi;
+			// Phrase as a matrix [[a b] [c d]] * [gr gi]
+			Sample mA = X.real() - O.real();
+			Sample mB = Y.real() - O.imag();
+			Sample mC = X.imag();
+			Sample mD = Y.imag();
+			Sample mInvDet = 1/(mA*mD - mB*mC);
+			Sample gr = mInvDet*((Hwr - H0)*mD - Hwi*mB);
+			Sample gi = mInvDet*((Hwr - H0)*-mC + Hwi*mA);
+			// And that's our gain!
+			gain = {gr, gi};
+			
+			dry = H0 - (gr*O.real() + gi*O.imag());
+			return *this;
+		}
+		
+		Filter2 & lowpassQ(Sample f, Sample q) {
+			return fit0cutoff(f, q, 1, [q](Sample iS){
+				return Sample(1)/Complex{1 - iS*iS, iS/q};
+			});
+		}
+		Filter2 & highpassQ(Sample f, Sample q) {
+			return fit0cutoff(f, q, 0, [q](Sample iS){
+				return -iS*iS/Complex{1 - iS*iS, iS/q};
+			});
+		}
+		Filter2 & bandpassQ(Sample f, Sample q) {
+			return fit0cutoff(f, q, 0, [q](Sample iS){
+				return Complex(0, iS/q)/Complex{1 - iS*iS, iS/q};
+			});
+		}
+		Filter2 & notchQ(Sample f, Sample q) {
+			return fit0cutoff(f, q, 1, [q](Sample iS){
+				return Complex(1 - iS*iS)/Complex{1 - iS*iS, iS/q};
+			});
+		}
+		Filter2 & peakQ(Sample f, Sample g, Sample q) {
+			q *= std::sqrt(g);
+			return fit0cutoff(f, q, 1, [q, g](Sample iS){
+				return Complex(1 - iS*iS, iS*g/q)/Complex{1 - iS*iS, iS/q};
+			});
+		}
+		Filter2 & highShelfQ(Sample f, Sample g, Sample q) {
+			Sample qdrtG = std::sqrt(std::sqrt(g));
+			return fit0cutoff(f, q, 1, [q, g](Sample iS){
+				Sample A = std::sqrt(g);
+				Sample sqrtA = std::sqrt(A);
+				return A*Complex{1 - A*iS*iS, sqrtA*iS/q}/Complex{A - iS*iS, sqrtA*iS/q};
+			}, qdrtG);
+		}
+		Filter2 & lowShelfQ(Sample f, Sample g, Sample q) {
+			Sample qdrtG = std::sqrt(std::sqrt(g));
+			return fit0cutoff(f, q, g, [q, g](Sample iS){
+				Sample A = std::sqrt(g);
+				Sample sqrtA = std::sqrt(A);
+				return A*Complex{A - iS*iS, sqrtA*iS/q}/Complex{1 - A*iS*iS, sqrtA*iS/q};
+			}, 1/qdrtG);
+		}
+		Filter2 & allpassQ(Sample f, Sample q) {
+			return fit0cutoff(f, q, 1, [q](Sample iS){
+				return Complex(1 - iS*iS, -iS/q)/Complex{1 - iS*iS, iS/q};
+			});
+		}
 	private:
+		template<class ResponseFn>
+		Filter2 & fit0cutoff(Sample f, Sample q, Sample gain0, ResponseFn &&responseFn, Sample poleScale=1) {
+			if (alwaysComplex) q = std::max<Sample>(q, 0.5);
+			Sample angF = f*Sample(2*M_PI);
+			Sample poleF = angF*poleScale;
+			// Pick reference
+			Sample iS = maxRefFreq/std::max(maxRefFreq, f);
+			Complex refResponse = responseFn(iS);
+			Complex refZ = std::polar(Sample(1), angF*iS);
+
+			// Pole taken via IIT
+			Sample logAr = -Sample(0.5)/q;
+			if (alwaysComplex || logAr >= -1) {
+				Sample logAi = std::sqrt(1 - logAr*logAr);
+				Complex logA{logAr, logAi};
+
+				Complex A = std::exp(logA*poleF);
+				return setPoleCutoffComplex(A, refZ, gain0, refResponse);
+			} else {
+				Sample logAii = std::sqrt(logAr*logAr - 1);
+				Complex logA{logAr - logAii, logAr + logAii};
+				
+				Complex A = {std::exp(logA.real()*poleF), std::exp(logA.imag()*poleF)};
+				return setPoleCutoffRealPair(A, refZ, gain0, refResponse);
+			}
+			return *this;
+		}
+	
 		ComplexPole<Sample> pole;
+		bool poleIsComplex = true;
 		Complex gain = 1;
 		Sample dry = 0;
 	};
